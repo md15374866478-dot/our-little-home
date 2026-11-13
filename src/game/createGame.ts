@@ -1,8 +1,16 @@
 import Phaser from 'phaser'
 import { HomeScene } from './HomeScene'
+import type { CompanionStatus } from './CompanionController'
 import type { MapKind } from './maps'
 
-export function createGame(parent: HTMLElement, onLocation: (location: MapKind) => void, onReady: () => void) {
+export function createGame(
+  parent: HTMLElement,
+  onLocation: (location: MapKind) => void,
+  onReady: (scene: HomeScene) => void,
+  onStatus: (status: CompanionStatus) => void,
+  onMessage: (message: string) => void,
+  onOpenMenu: () => void,
+) {
   return new Phaser.Game({
     type: Phaser.AUTO,
     parent,
@@ -12,6 +20,6 @@ export function createGame(parent: HTMLElement, onLocation: (location: MapKind) 
     roundPixels: true,
     scale: { mode: Phaser.Scale.RESIZE, width: parent.clientWidth, height: parent.clientHeight },
     render: { pixelArt: true, antialias: false },
-    scene: [new HomeScene(onLocation, onReady)],
+    scene: [new HomeScene(onLocation, onReady, onStatus, onMessage, onOpenMenu)],
   })
 }
