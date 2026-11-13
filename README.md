@@ -34,7 +34,8 @@ npm run dev -- --host 0.0.0.0
 | `src/components/HousePreview.tsx` | 首页原创 Canvas 像素小屋动画 |
 | `src/components/GameScreen.tsx` | Phaser 容器、加载提示、触控方向键与游戏 HUD |
 | `src/game/HomeScene.ts` | 角色动画、移动、镜头、雨效和淡入淡出切图 |
-| `src/game/maps.ts` | 16×16 网格地图、家具绘制、碰撞和门口触发区 |
+| `src/game/maps.ts` | 16×16 网格地图、家具绘制和阻挡网格 |
+| `src/game/collision.ts` | 脚部碰撞与房门触发规则 |
 | `src/game/environment.ts` | 北京时间昼夜、季节与按日期固定的模拟天气 |
 | `src/game/input.ts` | 独立触控输入状态 |
 | `src/game/contracts.ts` | 未来身份、角色外观、NPC、互动、回忆和存档接口 |

@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { getEnvironment, type Environment } from './environment'
-import { canStand, createMap, doorwayAt, type MapKind, type WorldMap, TILE } from './maps'
+import { createMap, type MapKind, type WorldMap, TILE } from './maps'
+import { canStand, doorwayAt } from './collision'
 import { touchInput, type Direction } from './input'
 
 const FRAME_W = 16, FRAME_H = 24
@@ -56,10 +57,12 @@ export class HomeScene extends Phaser.Scene {
   private atmosphere?: Phaser.GameObjects.Graphics
   private rain?: Phaser.GameObjects.Graphics
   private onLocation: (location: MapKind) => void
+  private onReady: () => void
 
-  constructor(onLocation: (location: MapKind) => void) {
+  constructor(onLocation: (location: MapKind) => void, onReady: () => void) {
     super('home-world')
     this.onLocation = onLocation
+    this.onReady = onReady
   }
 
   create() {
@@ -86,6 +89,7 @@ export class HomeScene extends Phaser.Scene {
       this.scale.off('resize', this.configureCamera, this)
       touchInput.clear()
     })
+    this.onReady()
   }
 
   private buildMap(kind: MapKind) {
