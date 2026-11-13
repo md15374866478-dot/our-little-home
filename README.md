@@ -24,6 +24,8 @@ npm run dev -- --host 0.0.0.0
 
 最后一条可供同一局域网内设备预览；访问运行机器的 IP 和 Vite 显示的端口。生产静态文件在 `dist/`，可部署到支持静态站点的服务。
 
+推送到 GitHub 的 `main` 分支后，`.github/workflows/pages.yml` 会运行测试、构建并部署到 GitHub Pages。站点使用相对资源路径，支持仓库子路径。
+
 ## 项目结构
 
 | 路径 | 用途 |
