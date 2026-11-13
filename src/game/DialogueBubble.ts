@@ -36,7 +36,7 @@ export class DialogueBubble {
     const view = this.scene.cameras.main.worldView
     const width = this.text.width + 8, height = this.text.height + 8
     const x = Phaser.Math.Clamp(this.speaker.x - width / 2, view.left + 4, view.right - width - 4)
-    const y = this.speaker.y - height - 34 < view.top + 4 ? this.speaker.y + 5 : this.speaker.y - height - 34
+    const y = this.speaker.y - height - 56 < view.top + 4 ? this.speaker.y + 5 : this.speaker.y - height - 56
     this.background.setPosition(x, y)
     this.text.setPosition(x + 4, y + 4)
   }

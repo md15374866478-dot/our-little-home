@@ -7,8 +7,8 @@ import { createMap, type MapKind } from './maps'
 import { findPath } from './pathfinding'
 
 function builtMap(kind: MapKind) {
-  const graphics = { setDepth() { return this }, fillStyle() { return this }, fillRect() { return this } }
-  const scene = { add: { graphics: () => graphics } } as unknown as Phaser.Scene
+  const image = { setDepth() { return this }, setOrigin() { return this } }
+  const scene = { add: { image: () => image } } as unknown as Phaser.Scene
   return createMap(scene, kind, getEnvironment(new Date('2026-06-01T04:00:00Z'))).map
 }
 
