@@ -23,7 +23,7 @@ npm test
 npm run build
 ```
 
-生产静态文件在 `dist/`。`.github/workflows/pages.yml` 仅在推送到 `main` 或手动触发时运行测试、构建并部署 GitHub Pages；开发分支不会覆盖线上版本。站点使用相对资源路径以支持仓库子路径。
+生产静态文件在 `dist/`。`.github/workflows/ci.yml` 在 PR 上运行测试与构建；`.github/workflows/pages.yml` 仅在推送到 `main` 或手动触发时部署 GitHub Pages。开发分支不会覆盖线上版本。站点使用相对资源路径以支持仓库子路径。
 
 ## 结构
 
