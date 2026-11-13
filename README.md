@@ -1,6 +1,6 @@
 # Our Little Home
 
-**A little world, just for us.** 第一阶段的双人生活模拟游戏基础世界。当前为公开可参观的单人漫步原型，身份、NPC 行为、双人互动和云端数据留待后续阶段。
+**A little world, just for us.** 温暖的双人像素生活世界。第二阶段加入门都 NPC 的自主活动、寻路与双人互动；仍使用原创占位角色素材。
 
 ## 本地运行
 
@@ -11,44 +11,45 @@ npm install
 npm run dev
 ```
 
-打开终端显示的地址，通常是 `http://localhost:5173/`。点击「进入小屋」后，角色出现在庭院南侧入口附近。用 **WASD** 或 **方向键**移动；手机和平板使用屏幕左下角方向键。沿石子路走到北侧小屋门口进入室内，走到室内南侧房门可返回庭院。右上角按钮返回首页。
+打开终端显示的地址，通常是 `http://localhost:5173/`。点击「进入小屋」后，姐姐出生在庭院南侧。使用 **WASD**、**方向键**或屏幕左下角触控方向键移动。走到北侧小屋门口进入室内，走到室内南侧房门返回庭院。右上角按钮返回首页。
 
-## 检查与构建
+点击门都角色，或点击右上方「与门都互动」，可选择对话、跟随、牵手、拥抱、一起坐下、一起睡觉或自由活动。坐下、睡觉、拥抱时移动即可退出；任意时刻也可从菜单切换动作。一起坐下会根据当前场景前往室内沙发或庭院长椅；一起睡觉仅在室内可用。门都距离较远时会自动寻路靠近；到不了的互动会给出提示并恢复安全状态。
+
+## 检查、构建与部署
 
 ```bash
 npm run typecheck
 npm test
 npm run build
-npm run dev -- --host 0.0.0.0
 ```
 
-最后一条可供同一局域网内设备预览；访问运行机器的 IP 和 Vite 显示的端口。生产静态文件在 `dist/`，可部署到支持静态站点的服务。
+生产静态文件在 `dist/`。`.github/workflows/ci.yml` 在 PR 上运行测试与构建；`.github/workflows/pages.yml` 仅在推送到 `main` 或手动触发时部署 GitHub Pages。开发分支不会覆盖线上版本。站点使用相对资源路径以支持仓库子路径。
 
-推送到 GitHub 的 `main` 分支后，`.github/workflows/pages.yml` 会运行测试、构建并部署到 GitHub Pages。站点使用相对资源路径，支持仓库子路径。
+## 结构
 
-## 项目结构
-
-| 路径 | 用途 |
+| 路径 | 职责 |
 | --- | --- |
-| `src/App.tsx` | 首页、北京时间环境状态与游戏入口 |
-| `src/components/HousePreview.tsx` | 首页原创 Canvas 像素小屋动画 |
-| `src/components/GameScreen.tsx` | Phaser 容器、加载提示、触控方向键与游戏 HUD |
-| `src/game/HomeScene.ts` | 角色动画、移动、镜头、雨效和淡入淡出切图 |
-| `src/game/maps.ts` | 16×16 网格地图、家具绘制和阻挡网格 |
-| `src/game/collision.ts` | 脚部碰撞与房门触发规则 |
-| `src/game/environment.ts` | 北京时间昼夜、季节与按日期固定的模拟天气 |
-| `src/game/input.ts` | 独立触控输入状态 |
-| `src/game/contracts.ts` | 未来身份、角色外观、NPC、互动、回忆和存档接口 |
-| `src/style.css` | 响应式像素风界面 |
+| `src/App.tsx`、`src/components/HousePreview.tsx` | 首页与动态像素小屋 |
+| `src/components/GameScreen.tsx`、`src/style.css` | 游戏 HUD、互动菜单和触控布局 |
+| `src/game/HomeScene.ts`、`src/game/createGame.ts` | Phaser 场景、玩家控制、镜头和场景切换 |
+| `src/game/maps.ts`、`src/game/collision.ts` | 原有 16×16 地图与共享脚部碰撞 |
+| `src/game/pathfinding.ts`、`src/game/routeFollower.ts` | 四方向 A* 寻路和可取消的移动执行 |
+| `src/game/anchors.ts`、`src/game/interactionPositions.ts` | 家具旁活动锚点、双人站位与狭窄通道队形 |
+| `src/game/behavior.ts`、`src/game/CompanionController.ts` | NPC 状态、意图与双人互动协调 |
+| `src/game/characterAnimations.ts` | 双角色占位精灵图和统一动作动画配置 |
+| `src/game/dialogue.ts`、`src/game/DialogueBubble.ts` | 集中管理的预设台词与自动换行气泡 |
+| `src/game/environment.ts` | 北京时间昼夜、季节与可复现模拟天气 |
+| `src/game/contracts.ts` | 后续身份、外观与存档系统的接口预留 |
 
-## 地图与素材
+## 实现说明
 
-- 庭院：44×34 格，南侧院门，北侧小屋，石子路、纪念树、长椅、花圃、路灯及散步空间。初始坐标约 `(22, 30)`。
-- 室内：30×24 格，床、书架、衣柜、沙发、茶几、书桌、绿植和房门按第一阶段指定坐标固定摆放；中央可行走。没有厨房。
-- 碰撞按角色脚部约 8×4 像素检查，水平和垂直轴分别处理。镜头按场景边界约束并平滑跟随。
-- 小屋、地图、角色和界面图形均为项目内手绘代码生成的**原创临时像素素材**。角色帧由 `HomeScene.ts` 生成；后续可用同尺寸或调整帧配置的正式精灵图替换。没有使用第三方商业游戏素材。
-- 昼夜与季节按 `Asia/Shanghai` 时区计算；天气根据北京时间日期确定，同一天刷新可复现。此阶段无天气 API、音效或持久化。
+- 庭院为 44×34 格，室内为 30×24 格；第一阶段地图和家具坐标未改动。
+- 玩家和 NPC 共用 `canStand` 脚部碰撞规则。A* 只规划可站立格；寻路失败或超时会取消动作，NPC 不会用瞬移掩盖普通寻路失败。
+- NPC 在纪念树、长椅、花圃、书架、窗边、沙发、床边等锚点间活动，并在每处停留约 11–18 秒。夜晚在室内更倾向床边休息。跟随和牵手在场景切换后保留意图。
+- 双人坐下或睡觉时，先分别走到家具外的可行走锚点，再播放短暂进入动画。起身或起床时返回锚点。牵手优先并排，狭窄处改为前后队形。
+- `characterAnimations.ts` 生成的姐姐、门都占位精灵图包含四向待机与行走，以及坐下、起身、牵手、拥抱、躺下、睡觉、起床和说话帧。正式角色可替换对应纹理与帧配置。
+- 没有接入 AI 对话、账号、云存档、衣柜、日记、相册或管理员后台；进度刷新后不保存。
 
-## 后续扩展边界
+## 验证边界
 
-Phaser 场景只处理基础世界。`contracts.ts` 提供未来接入姐姐身份、游客权限、门都 NPC、自主行为、角色换装、互动、日记相册及云端存档的接口起点。此阶段没有接入 Supabase、认证、付费服务或管理后台。正式角色图片接入时，可替换 `createCharacterSheet` 的纹理来源，并保持四方向动画帧命名。
+自动测试覆盖北京时间、原有碰撞、地图互动锚点、绕障与不可达寻路、状态取消及狭窄处队形。桌面 Chromium 和触控模拟浏览器用于运行交互流程。**实际 iPad Safari 横屏触控仍需人工验收**，尤其是持续按键、系统手势、旋转屏幕后菜单及动画状态。
