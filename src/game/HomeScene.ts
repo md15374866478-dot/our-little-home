@@ -1,17 +1,21 @@
 import Phaser from 'phaser'
 import { getEnvironment, type Environment } from './environment'
-import { createMap, type MapKind, type WorldMap, TILE } from './maps'
+import { createMap, preloadMapArt, type MapKind, type WorldMap, TILE } from './maps'
 import { canStand, doorwayAt } from './collision'
 import { touchInput, type Direction } from './input'
 import { registerCharacters } from './characterAnimations'
+import { preloadCharacters } from './characterAssets'
 import { CompanionController, type CompanionStatus } from './CompanionController'
 import type { InteractionAction } from './behavior'
 
 export class HomeScene extends Phaser.Scene {
   private kind: MapKind = 'yard'
   private world!: WorldMap
-  private mapGraphics?: Phaser.GameObjects.Graphics
+  private mapLayers: Phaser.GameObjects.Image[] = []
   private player!: Phaser.GameObjects.Sprite
+  private playerName?: Phaser.GameObjects.Text
+  private playerShadow?: Phaser.GameObjects.Ellipse
+  private npcShadow?: Phaser.GameObjects.Ellipse
   private companion?: CompanionController
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys
   private keys!: Record<'W' | 'A' | 'S' | 'D', Phaser.Input.Keyboard.Key>
@@ -21,6 +25,7 @@ export class HomeScene extends Phaser.Scene {
   private environment!: Environment
   private atmosphere?: Phaser.GameObjects.Graphics
   private rain?: Phaser.GameObjects.Graphics
+  private lastFrameTime = 0
 
   constructor(
     private onLocation: (location: MapKind) => void,
@@ -30,6 +35,11 @@ export class HomeScene extends Phaser.Scene {
     private onOpenMenu: () => void,
   ) { super('home-world') }
 
+  preload() {
+    preloadCharacters(this)
+    preloadMapArt(this)
+  }
+
   create() {
     this.environment = getEnvironment()
     registerCharacters(this)
@@ -37,8 +47,13 @@ export class HomeScene extends Phaser.Scene {
     this.keys = this.input.keyboard!.addKeys('W,A,S,D') as typeof this.keys
     this.input.keyboard!.addCapture(['UP', 'DOWN', 'LEFT', 'RIGHT'])
     this.buildMap('yard')
-    this.player = this.add.sprite(22.5 * TILE, 30.5 * TILE, 'sister', 1).setOrigin(0.5, 1).setDepth(10)
+    this.player = this.add.sprite(22.5 * TILE, 30.5 * TILE, 'mashuo', 1).setOrigin(0.5, 1).setDepth(10)
+    this.playerName = this.add.text(this.player.x, this.player.y - 49, '马硕', {
+      fontFamily: 'monospace', fontSize: '9px', color: '#fff3d5', backgroundColor: '#634b45', padding: { x: 3, y: 2 },
+    }).setOrigin(0.5, 1).setDepth(20)
     this.companion = new CompanionController(this, this.player, this.world, this.kind, this.environment, this.onStatus, this.onMessage, this.onOpenMenu)
+    this.playerShadow = this.add.ellipse(this.player.x, this.player.y - 2, 18, 6, 0x46372d, 0.26).setDepth(9)
+    this.npcShadow = this.add.ellipse(this.companion.npc.x, this.companion.npc.y - 2, 18, 6, 0x46372d, 0.26).setDepth(9)
     this.cameras.main.setRoundPixels(true)
     this.cameras.main.startFollow(this.player, true, 0.12, 0.12)
     this.scale.on('resize', this.configureCamera, this)
@@ -64,12 +79,12 @@ export class HomeScene extends Phaser.Scene {
   setInteractionMenuOpen(open: boolean) { this.companion?.setMenuOpen(open) }
 
   private buildMap(kind: MapKind) {
-    this.mapGraphics?.destroy()
+    for (const layer of this.mapLayers) layer.destroy()
     this.atmosphere?.destroy()
     this.rain?.destroy()
     this.kind = kind
     const built = createMap(this, kind, this.environment)
-    this.mapGraphics = built.graphics
+    this.mapLayers = built.layers
     this.world = built.map
     const width = this.world.width * TILE, height = this.world.height * TILE
     this.atmosphere = this.add.graphics().setDepth(15)
@@ -88,7 +103,7 @@ export class HomeScene extends Phaser.Scene {
   private configureCamera() {
     if (!this.world) return
     const width = this.scale.width, height = this.scale.height
-    const zoom = Math.max(2, width / (this.world.width * TILE), height / (this.world.height * TILE))
+    const zoom = Math.max(2, Math.ceil(Math.max(width / (this.world.width * TILE), height / (this.world.height * TILE))))
     this.cameras.main.setZoom(zoom)
     this.cameras.main.setBounds(0, 0, this.world.width * TILE, this.world.height * TILE)
   }
@@ -117,6 +132,9 @@ export class HomeScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number) {
+    const now = performance.now()
+    const frameDelta = this.lastFrameTime ? Math.min(250, now - this.lastFrameTime) : delta
+    this.lastFrameTime = now
     if (!this.player || this.transitioning) return
     const down = (direction: Direction) => touchInput.isDown(direction) || (
       direction === 'up' ? this.cursors.up.isDown || this.keys.W.isDown :
@@ -131,15 +149,25 @@ export class HomeScene extends Phaser.Scene {
     const canMove = !this.companion?.isPlayerLocked()
     if (requestedMove && canMove) {
       if (dx && dy) { dx *= Math.SQRT1_2; dy *= Math.SQRT1_2 }
-      const distance = Math.min(delta, 50) * 0.105
-      const nextX = this.player.x + dx * distance
-      if (canStand(this.world, nextX, this.player.y) && this.companion?.canPlayerOccupy(nextX, this.player.y)) this.player.x = nextX
-      const nextY = this.player.y + dy * distance
-      if (canStand(this.world, this.player.x, nextY) && this.companion?.canPlayerOccupy(this.player.x, nextY)) this.player.y = nextY
+      // Substeps retain foot collision when Safari skips a frame or the tab resumes.
+      let remaining = frameDelta
+      while (remaining > 0) {
+        const distance = Math.min(remaining, 32) * 0.105
+        const nextX = this.player.x + dx * distance
+        if (canStand(this.world, nextX, this.player.y) && this.companion?.canPlayerOccupy(nextX, this.player.y)) this.player.x = nextX
+        const nextY = this.player.y + dy * distance
+        if (canStand(this.world, this.player.x, nextY) && this.companion?.canPlayerOccupy(this.player.x, nextY)) this.player.y = nextY
+        remaining -= 32
+      }
       this.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')
       this.companion?.setPlayerFacing(this.facing, true)
     } else if (canMove) this.companion?.setPlayerFacing(this.facing, false)
-    this.companion?.update(delta)
+    this.companion?.update(frameDelta)
+    this.player.setDepth(10 + this.player.y / 1000)
+    this.companion?.npc.setDepth(10 + this.companion.npc.y / 1000)
+    this.playerShadow?.setPosition(this.player.x, this.player.y - 2)
+    this.playerName?.setPosition(this.player.x, this.player.y - 49)
+    if (this.companion) this.npcShadow?.setPosition(this.companion.npc.x, this.companion.npc.y - 2)
     if (this.rain) {
       this.rain.clear().lineStyle(1, 0xdde9da, 0.55)
       for (let i = 0; i < 80; i++) {

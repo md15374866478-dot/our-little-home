@@ -20,7 +20,7 @@ export class CompanionController {
   private route: RouteFollower
   private dialogue = new DialogueBook()
   private name: Phaser.GameObjects.Text
-  private facing: Record<Role, Direction> = { sister: 'down', mendu: 'down' }
+  private facing: Record<Role, Direction> = { mashuo: 'down', mendu: 'down' }
   private autonomyDue: number
   private lastAnchor = ''
   private anchorCursor = 0
@@ -46,9 +46,9 @@ export class CompanionController {
     onOpenMenu: () => void,
   ) {
     this.npc = scene.add.sprite(25.5 * 16, 28.5 * 16, 'mendu', 1).setOrigin(0.5, 1).setDepth(11)
-    this.npc.setInteractive(new Phaser.Geom.Rectangle(-8, -6, 32, 36), Phaser.Geom.Rectangle.Contains)
+    this.npc.setInteractive()
     this.npc.on('pointerdown', () => onOpenMenu())
-    this.name = scene.add.text(this.npc.x, this.npc.y - 30, '门都', {
+    this.name = scene.add.text(this.npc.x, this.npc.y - 49, '门都', {
       fontFamily: 'monospace', fontSize: '9px', color: '#fff3d5', backgroundColor: '#284137', padding: { x: 3, y: 2 },
     }).setOrigin(0.5, 1).setDepth(20)
     this.bubble = new DialogueBubble(scene, this.npc)
@@ -59,17 +59,17 @@ export class CompanionController {
 
   get status(): CompanionStatus { return { state: this.machine.state, intent: this.machine.intent } }
   get proximity() { return apart(this.player, this.npc) }
-  isPlayerLocked() { return this.route.busy('sister') || ['TRANSITIONING', 'SITTING', 'SLEEPING', 'HUGGING', 'TALKING'].includes(this.machine.state) }
+  isPlayerLocked() { return this.route.busy('mashuo') || ['TRANSITIONING', 'SITTING', 'SLEEPING', 'HUGGING', 'TALKING'].includes(this.machine.state) }
   canPlayerOccupy(x: number, y: number) { return this.machine.intent !== 'hand' || apart({ x, y }, this.npc) >= 10 }
 
-  setPlayerFacing(direction: Direction, moving: boolean) { this.motion('sister', direction, moving) }
+  setPlayerFacing(direction: Direction, moving: boolean) { this.motion('mashuo', direction, moving) }
   setMenuOpen(open: boolean) {
     this.bubble.setMenuOpen(open)
   }
 
   playerMovementRequested() {
-    if (this.isPlayerLocked() && !this.route.busy('sister') && this.machine.state !== 'TRANSITIONING') void this.request('free')
-    else if (this.route.busy('sister')) void this.request('free')
+    if (this.isPlayerLocked() && !this.route.busy('mashuo') && this.machine.state !== 'TRANSITIONING') void this.request('free')
+    else if (this.route.busy('mashuo')) void this.request('free')
   }
 
   async request(action: InteractionAction) {
@@ -79,7 +79,7 @@ export class CompanionController {
     this.followGoal = undefined
     this.publish()
     if (previous === 'HOLDING_HANDS') {
-      showPose(this.player, 'sister', 'hand-end')
+      showPose(this.player, 'mashuo', 'hand-end')
       showPose(this.npc, 'mendu', 'hand-end')
       if (!await this.wait(230) || !this.machine.valid(token)) return
     }
@@ -87,7 +87,7 @@ export class CompanionController {
       await this.exitPose()
       if (!this.machine.valid(token)) return
     }
-    this.motion('sister', this.facing.sister, false)
+    this.motion('mashuo', this.facing.mashuo, false)
     this.motion('mendu', this.facing.mendu, false)
     switch (action) {
       case 'free':
@@ -99,7 +99,7 @@ export class CompanionController {
         this.machine.finish(token, 'FOLLOWING', 'follow')
         this.followDue = 0
         this.followFailures = 0
-        this.notice('门都会跟着姐姐。')
+        this.notice('门都会跟着马硕。')
         break
       case 'hand': await this.startHand(token); break
       case 'hug': await this.startHug(token); break
@@ -133,15 +133,15 @@ export class CompanionController {
   }
 
   private async startHand(token: number) {
-    const goal = formationTarget(this.world, this.player, this.npc, this.facing.sister, true)
+    const goal = formationTarget(this.world, this.player, this.npc, this.facing.mashuo, true)
     if (!goal || !await this.route.navigate(this.npc, 'mendu', goal)) return this.fail(token, '门都暂时无法走到身旁。')
     if (!this.machine.valid(token)) return
     this.faceEachOther()
-    showPose(this.player, 'sister', 'hand-start')
+    showPose(this.player, 'mashuo', 'hand-start')
     showPose(this.npc, 'mendu', 'hand-start')
     if (!await this.wait(320) || !this.machine.valid(token)) return
     this.machine.finish(token, 'HOLDING_HANDS', 'hand')
-    showPose(this.player, 'sister', 'hand')
+    showPose(this.player, 'mashuo', 'hand')
     showPose(this.npc, 'mendu', 'hand')
     this.followDue = 0
     this.followFailures = 0
@@ -152,17 +152,17 @@ export class CompanionController {
     const spot = findHugSpot(this.world, this.player, this.npc)
     if (!spot) return this.fail(token, '这里空间有点小，换个位置再抱抱。')
     const [a, b] = await Promise.all([
-      this.route.navigate(this.player, 'sister', spot[0]),
+      this.route.navigate(this.player, 'mashuo', spot[0]),
       this.route.navigate(this.npc, 'mendu', spot[1]),
     ])
     if (!this.machine.valid(token)) return
     if (!a || !b) return this.fail(token, '走不到合适的位置，先停一下。')
     this.faceEachOther()
-    showPose(this.player, 'sister', 'hug-start')
+    showPose(this.player, 'mashuo', 'hug-start')
     showPose(this.npc, 'mendu', 'hug-start')
     if (!await this.wait(350) || !this.machine.valid(token)) return
     this.machine.finish(token, 'HUGGING')
-    showPose(this.player, 'sister', 'hug')
+    showPose(this.player, 'mashuo', 'hug')
     showPose(this.npc, 'mendu', 'hug')
     this.notice('抱一下，再慢慢出发。')
   }
@@ -172,14 +172,14 @@ export class CompanionController {
     const npcRoute = findPath(this.world, this.npc, seat.approach[1])
     if (!playerRoute || !npcRoute) return this.fail(token, state === 'SITTING' ? '座位暂时走不到。' : '床边暂时走不到。')
     const [a, b] = await Promise.all([
-      this.route.navigate(this.player, 'sister', seat.approach[0]),
+      this.route.navigate(this.player, 'mashuo', seat.approach[0]),
       this.route.navigate(this.npc, 'mendu', seat.approach[1]),
     ])
     if (!this.machine.valid(token)) return
     if (!a || !b) return this.fail(token, '前往互动位置时遇到阻碍。')
     this.poseSpot = seat
     const pose = state === 'SITTING' ? 'sit' : 'lie'
-    showPose(this.player, 'sister', pose)
+    showPose(this.player, 'mashuo', pose)
     showPose(this.npc, 'mendu', pose)
     const entered = await Promise.all([
       this.tweenTo(this.player, seat.pose[0], 390, 'entry'),
@@ -189,7 +189,7 @@ export class CompanionController {
     if (entered.includes(false)) { await this.exitPose(); return this.fail(token, '互动被中断，已经回到安全位置。') }
     this.machine.finish(token, state)
     if (state === 'SLEEPING') {
-      showPose(this.player, 'sister', 'sleep')
+      showPose(this.player, 'mashuo', 'sleep')
       showPose(this.npc, 'mendu', 'sleep')
     }
     this.notice(state === 'SITTING' ? '一起坐一会儿。移动即可起身。' : '晚安，移动即可起床。')
@@ -198,7 +198,7 @@ export class CompanionController {
   private updateFollowing() {
     if (this.scene.time.now < this.followDue) return
     this.followDue = this.scene.time.now + (this.machine.intent === 'hand' ? 360 : 470)
-    const goal = formationTarget(this.world, this.player, this.npc, this.facing.sister, this.machine.intent === 'hand')
+    const goal = formationTarget(this.world, this.player, this.npc, this.facing.mashuo, this.machine.intent === 'hand')
     if (!goal) {
       if (++this.followFailures >= 4) this.lostFollow()
       return
@@ -265,7 +265,7 @@ export class CompanionController {
     this.route.update(delta)
     if (this.machine.intent === 'follow' || this.machine.intent === 'hand') this.updateFollowing()
     else this.updateAutonomy()
-    this.name.setPosition(this.npc.x, this.npc.y - 27)
+    this.name.setPosition(this.npc.x, this.npc.y - 49)
     this.bubble.update()
   }
 
@@ -298,12 +298,14 @@ export class CompanionController {
 
   private faceEachOther() {
     const direction: Direction = this.player.x < this.npc.x ? 'right' : 'left'
-    this.motion('sister', direction, false)
+    this.facing.mashuo = direction
+    this.facing.mendu = direction === 'right' ? 'left' : 'right'
+    this.motion('mashuo', direction, false)
     this.motion('mendu', direction === 'right' ? 'left' : 'right', false)
   }
 
   private motion(role: Role, direction: Direction, moving: boolean) {
-    const sprite = role === 'sister' ? this.player : this.npc
+    const sprite = role === 'mashuo' ? this.player : this.npc
     if (moving) this.facing[role] = direction
     if (moving) showWalk(sprite, role, direction)
     else showIdle(sprite, role, this.facing[role])
@@ -313,7 +315,7 @@ export class CompanionController {
     if (!this.poseSpot) return
     if (this.exitPromise) return this.exitPromise
     const seat = this.poseSpot
-    showPose(this.player, 'sister', seat.kind === 'sleep' ? 'wake' : 'stand')
+    showPose(this.player, 'mashuo', seat.kind === 'sleep' ? 'wake' : 'stand')
     showPose(this.npc, 'mendu', seat.kind === 'sleep' ? 'wake' : 'stand')
     this.exitPromise = Promise.all([
       this.tweenTo(this.player, seat.approach[0], 320, 'exit'),
@@ -323,7 +325,7 @@ export class CompanionController {
       this.npc.setPosition(seat.approach[1].x, seat.approach[1].y)
       this.poseSpot = undefined
       this.exitPromise = undefined
-      this.motion('sister', this.facing.sister, false)
+      this.motion('mashuo', this.facing.mashuo, false)
       this.motion('mendu', this.facing.mendu, false)
     })
     return this.exitPromise
