@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Our Little Home · 室内美术样板</title>
+  <style>
+    :root{color-scheme:light;--ink:#3e302b;--cream:#f5e8ce;--paper:#fff5e1;--wood:#9a694b;--green:#71836b}
+    *{box-sizing:border-box}body{margin:0;background:#e6d4b4;color:var(--ink);font-family:system-ui,"Noto Sans SC",sans-serif}
+    header{padding:24px clamp(16px,4vw,48px);background:#3b4d3d;color:var(--cream);display:flex;justify-content:space-between;align-items:center;gap:16px}
+    header strong{font:700 clamp(20px,3vw,30px) Georgia,serif}a{color:inherit}header a{border:2px solid #dac296;padding:10px 14px;text-decoration:none;white-space:nowrap}
+    main{max-width:1320px;margin:auto;padding:28px clamp(16px,4vw,48px) 60px}h1{font-size:clamp(24px,3vw,36px);margin:0 0 12px}h2{font-size:23px;margin:0 0 13px}p{line-height:1.75;margin:0 0 18px}.lead{max-width:850px}
+    section{margin-top:27px;padding:20px;background:var(--paper);border:3px solid #a47755;box-shadow:6px 6px 0 #7b624b55}
+    .pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.pair section{margin-top:0}
+    figure{margin:0}figure img{display:block;width:100%;height:auto;border:2px solid #7f6047;background:#f2e3c6}figcaption{font-size:13px;color:#6a594c;line-height:1.7;margin-top:10px}
+    .atlas{width:min(100%,640px);image-rendering:pixelated;image-rendering:crisp-edges}.tag{display:inline-block;background:#d6e0c9;border:1px solid #849273;padding:4px 8px;font-size:12px;margin-bottom:12px}
+    .warning{background:#fff0cf;border-left:5px solid #be9158;padding:12px 15px;max-width:950px}table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px solid #d7c2a6;text-align:left;padding:9px}th{background:#e9d8bc}
+    @media(max-width:800px){.pair{grid-template-columns:1fr}header{flex-wrap:wrap}}
+  </style>
+</head>
+<body>
+  <header><strong>Our Little Home · Phase 3.0</strong><a href="../">返回可玩的游戏</a></header>
+  <main>
+    <h1>室内与双人角色美术样板</h1>
+    <p class="lead">请分别看「实际游戏截图」和「美术方向概念图」。后者用于确定细节密度与气氛，没有地图碰撞或逐帧素材，尚未接入游戏。</p>
+    <div class="pair">
+      <section><span class="tag">实际游戏 · iPad 横屏尺寸模拟</span><h2>室内可玩样板</h2><figure><img src="indoor-gameplay.png" alt="马硕与门都在室内地图中的实际游戏截图" /><figcaption>游戏内 30×24 格地图、整数镜头倍率。床为独立透明家具层；其余室内家具仍为上一阶段临时稿。</figcaption></figure></section>
+      <section><span class="tag">概念方向 · 非游戏素材</span><h2>目标细节与氛围</h2><figure><a href="indoor-direction.png"><img src="indoor-direction.png" alt="温暖木色和鼠尾草绿的原创室内美术方向概念图" /></a><figcaption>原创 1402×1122 概念画。未做 16×16 网格对齐，不可直接缩小或裁切后用于 Phaser。</figcaption></figure></section>
+    </div>
+    <section><h2>双人默认服装四方向图集</h2><p>每张 256×192 透明 PNG；单帧 32×48。前 16 帧依次为向下、向左、向右、向上，各方向四帧。后 16 帧为临时互动姿态。点击图集可打开原始 PNG。</p><div class="pair"><figure><a href="mashuo-atlas.png"><img class="atlas" src="mashuo-atlas.png" alt="马硕四方向行走和临时互动图集" /></a><figcaption>马硕 · 长直发、深色格纹裙、白领、黑靴。当前是原创可玩草稿。</figcaption></figure><figure><a href="mendu-atlas.png"><img class="atlas" src="mendu-atlas.png" alt="门都四方向行走和临时互动图集" /></a><figcaption>门都 · 蓬松黑发、深色卫衣。当前是原创可玩草稿。</figcaption></figure></div></section>
+    <section><h2>本轮范围</h2><table><tr><th>已接入</th><th>仍需制作</th></tr><tr><td>独立床图与遮挡、双人默认四向站立和行走、双服装资源接口</td><td>照片级人物精修、正式互动动画、第二套服装、其余家具与庭院逐件重制</td></tr></table><p class="warning">此页供美术品质验收。当前角色和床图仍未达到上方概念画的精修水平；正式素材需要按游戏网格重新绘制，不能以概念画替代。</p></section>
+  </main>
+</body>
+</html>
