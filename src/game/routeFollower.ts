@@ -17,13 +17,18 @@ interface Route {
 
 export class RouteFollower {
   private routes = new Map<Role, Route>()
-  constructor(private map: () => WorldMap, private onMotion: (role: Role, direction: Direction, moving: boolean) => void) {}
+  constructor(private map: () => WorldMap, private onMotion: (role: Role, direction: Direction, moving: boolean) => void, private canOccupy: (x: number, y: number) => boolean = () => true) {}
 
   busy(role: Role) { return this.routes.has(role) }
 
   navigate(sprite: Phaser.GameObjects.Sprite, role: Role, goal: Point): Promise<boolean> {
     this.cancel(role)
-    const route = findPath(this.map(), sprite, goal)
+    const base = this.map()
+    const map = { ...base, blocked: base.blocked.map((row, y) => row.map((blocked, x) => {
+      if (Math.floor(sprite.x / 16) === x && Math.floor(sprite.y / 16) === y) return blocked
+      return blocked || !this.canOccupy((x + .5) * 16, (y + .5) * 16)
+    })) }
+    const route = findPath(map, sprite, goal)
     if (!route) return Promise.resolve(false)
     if (route.length === 1 && Phaser.Math.Distance.Between(sprite.x, sprite.y, goal.x, goal.y) < 2) return Promise.resolve(true)
     return new Promise(resolve => this.routes.set(role, {
@@ -47,9 +52,11 @@ export class RouteFollower {
         const step = Math.min(length, budget, 8)
         const x = route.sprite.x + dx / length * step
         const y = route.sprite.y + dy / length * step
+        const beforeX = route.sprite.x, beforeY = route.sprite.y
         let moved = false
-        if (canStand(this.map(), x, route.sprite.y)) { route.sprite.x = x; moved = true }
-        if (canStand(this.map(), route.sprite.x, y)) { route.sprite.y = y; moved = true }
+        if (canStand(this.map(), x, route.sprite.y) && this.canOccupy(x,route.sprite.y)) { route.sprite.x = x; moved = true }
+        if (canStand(this.map(), route.sprite.x, y) && this.canOccupy(route.sprite.x,y)) { route.sprite.y = y; moved = true }
+        moved = moved && Math.hypot(route.sprite.x-beforeX,route.sprite.y-beforeY)>0.001
         if (!moved) { route.stuckMs += delta; break }
         route.stuckMs = 0
         budget -= step

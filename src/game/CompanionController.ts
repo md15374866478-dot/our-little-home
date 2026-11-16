@@ -20,6 +20,8 @@ export class CompanionController {
   readonly npc: Phaser.GameObjects.Sprite
   readonly machine = new BehaviorMachine()
   bed: BedController
+  private petAvoidance: (x: number, y: number) => boolean = () => true
+  setPetAvoidance(check: (x: number, y: number) => boolean) { this.petAvoidance = check }
   private route: RouteFollower
   private dialogue = new DialogueBook()
   private name: Phaser.GameObjects.Text
@@ -57,7 +59,7 @@ export class CompanionController {
       fontFamily: 'monospace', fontSize: '9px', color: '#fff3d5', backgroundColor: '#284137', padding: { x: 3, y: 2 },
     }).setOrigin(0.5, 1).setDepth(20)
     this.bubble = new DialogueBubble(scene, this.npc)
-    this.route = new RouteFollower(() => this.world, (role, direction, moving) => this.motion(role, direction, moving))
+    this.route = new RouteFollower(() => this.world, (role, direction, moving) => this.motion(role, direction, moving), (x,y) => this.petAvoidance(x,y))
     this.bed = new BedController(scene, { mashuo: player, mendu: this.npc },
       (person, point) => this.route.navigate(person === 'mashuo' ? player : this.npc, person, point),
       person => this.route.cancel(person), () => this.publish())
