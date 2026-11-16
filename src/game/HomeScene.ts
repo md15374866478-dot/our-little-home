@@ -4,7 +4,7 @@ import { createMap, preloadMapArt, type MapKind, type WorldMap, TILE } from './m
 import { canStand, doorwayAt } from './collision'
 import { touchInput, type Direction } from './input'
 import { registerCharacters } from './characterAnimations'
-import { preloadCharacters } from './characterAssets'
+import { FRAME_HEIGHT, preloadCharacters } from './characterAssets'
 import { CompanionController, type CompanionStatus } from './CompanionController'
 import type { InteractionAction } from './behavior'
 
@@ -46,9 +46,13 @@ export class HomeScene extends Phaser.Scene {
     this.cursors = this.input.keyboard!.createCursorKeys()
     this.keys = this.input.keyboard!.addKeys('W,A,S,D') as typeof this.keys
     this.input.keyboard!.addCapture(['UP', 'DOWN', 'LEFT', 'RIGHT'])
-    this.buildMap('yard')
-    this.player = this.add.sprite(22.5 * TILE, 30.5 * TILE, 'mashuo', 1).setOrigin(0.5, 1).setDepth(10)
-    this.playerName = this.add.text(this.player.x, this.player.y - 49, '马硕', {
+    // Review links can start in the playable room; the ordinary game still
+    // begins at the garden gate. Both paths use the same scene and collision.
+    const startAtHome = new URLSearchParams(window.location.search).get('preview') === 'home'
+    this.buildMap(startAtHome ? 'home' : 'yard')
+    this.player = this.add.sprite(startAtHome ? 15 * TILE : 22.5 * TILE,
+      startAtHome ? 20 * TILE : 30.5 * TILE, 'mashuo', 1).setOrigin(0.5, 1).setDepth(10)
+    this.playerName = this.add.text(this.player.x, this.player.y - FRAME_HEIGHT - 1, '马硕', {
       fontFamily: 'monospace', fontSize: '9px', color: '#fff3d5', backgroundColor: '#634b45', padding: { x: 3, y: 2 },
     }).setOrigin(0.5, 1).setDepth(20)
     this.companion = new CompanionController(this, this.player, this.world, this.kind, this.environment, this.onStatus, this.onMessage, this.onOpenMenu)
@@ -166,7 +170,7 @@ export class HomeScene extends Phaser.Scene {
     this.player.setDepth(10 + this.player.y / 1000)
     this.companion?.npc.setDepth(10 + this.companion.npc.y / 1000)
     this.playerShadow?.setPosition(this.player.x, this.player.y - 2)
-    this.playerName?.setPosition(this.player.x, this.player.y - 49)
+    this.playerName?.setPosition(this.player.x, this.player.y - FRAME_HEIGHT - 1)
     if (this.companion) this.npcShadow?.setPosition(this.companion.npc.x, this.companion.npc.y - 2)
     if (this.rain) {
       this.rain.clear().lineStyle(1, 0xdde9da, 0.55)

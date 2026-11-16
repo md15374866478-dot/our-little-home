@@ -1,11 +1,11 @@
 import Phaser from 'phaser'
-import mashuoSheet from '../assets/characters/mashuo.png'
-import menduSheet from '../assets/characters/mendu.png'
+import mashuoSheet from '../assets/characters/mashuo-v33.png'
+import menduSheet from '../assets/characters/mendu-v33.png'
 
 export type Role = 'mashuo' | 'mendu'
 export type OutfitSlot = 'default' | 'alternate'
-export const FRAME_WIDTH = 32
-export const FRAME_HEIGHT = 48
+export const FRAME_WIDTH = 40
+export const FRAME_HEIGHT = 60
 export const FRAME_COLUMNS = 8
 export const FRAME_ROWS = 4
 export const FOOT_ORIGIN = { x: 0.5, y: 1 } as const
@@ -20,11 +20,10 @@ export interface OutfitAsset {
   id: string
   textureKey: string
   url: string
-  status: 'playable-review' | 'final'
+  status: 'approved-style' | 'final'
   /** First 16 frames have four directions × four walking phases. */
   walkFrames: 16
-  /** Interaction frames are still temporary on the current atlases. */
-  interactionFrames: 'temporary' | 'final'
+  interactionFrames: 'playable' | 'final'
 }
 
 export interface CharacterAsset {
@@ -40,14 +39,14 @@ export const characterAssets: Record<Role, CharacterAsset> = {
   mashuo: {
     id: 'mashuo', displayName: '马硕', frameWidth: FRAME_WIDTH, frameHeight: FRAME_HEIGHT, footOrigin: FOOT_ORIGIN,
     outfits: {
-      default: { id: 'plaid-dress-review', textureKey: 'mashuo', url: mashuoSheet, status: 'playable-review', walkFrames: 16, interactionFrames: 'temporary' },
+      default: { id: 'plaid-dress-v33', textureKey: 'mashuo', url: mashuoSheet, status: 'approved-style', walkFrames: 16, interactionFrames: 'playable' },
       alternate: null,
     },
   },
   mendu: {
     id: 'mendu', displayName: '门都', frameWidth: FRAME_WIDTH, frameHeight: FRAME_HEIGHT, footOrigin: FOOT_ORIGIN,
     outfits: {
-      default: { id: 'dark-hoodie-review', textureKey: 'mendu', url: menduSheet, status: 'playable-review', walkFrames: 16, interactionFrames: 'temporary' },
+      default: { id: 'dark-hoodie-v33', textureKey: 'mendu', url: menduSheet, status: 'approved-style', walkFrames: 16, interactionFrames: 'playable' },
       alternate: null,
     },
   },
@@ -82,10 +81,10 @@ function fallbackSheet(role: Role): HTMLCanvasElement {
   const color = role === 'mashuo' ? '#8f6052' : '#353239'
   for (let frame = 0; frame < 32; frame++) {
     const x = (frame % 8) * FRAME_WIDTH, y = Math.floor(frame / 8) * FRAME_HEIGHT
-    c.fillStyle = '#342d30'; c.fillRect(x + 7, y + 8, 18, 35)
-    c.fillStyle = '#efbf9f'; c.fillRect(x + 10, y + 15, 12, 12)
-    c.fillStyle = color; c.fillRect(x + 8, y + 28, 16, 14)
-    c.fillStyle = '#27282a'; c.fillRect(x + 8, y + 42, 6, 5); c.fillRect(x + 19, y + 42, 6, 5)
+    c.fillStyle = '#342d30'; c.fillRect(x + 8, y + 7, 24, 43)
+    c.fillStyle = '#efbf9f'; c.fillRect(x + 13, y + 18, 14, 15)
+    c.fillStyle = color; c.fillRect(x + 10, y + 39, 20, 14)
+    c.fillStyle = '#27282a'; c.fillRect(x + 10, y + 54, 8, 5); c.fillRect(x + 22, y + 54, 8, 5)
   }
   return canvas
 }

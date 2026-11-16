@@ -50,6 +50,21 @@ for role, source_size in (('mashuo', (1261, 1247)), ('mendu', (1247, 1261))):
         assert max(centers) - min(centers) <= 2, f'{role}: V3.1 direction {direction} jumps horizontally'
     print(f'{role}: V3.1 16 transparent 40×60 walk frames, stable foot baseline')
 
+    playable = rgba(CHARACTERS / f'{role}-v33.png', (320, 240))
+    assert playable.crop((0, 0, 320, 120)).tobytes() == sheet.tobytes(), f'{role}: approved walk frames changed'
+    assert set(playable.getchannel('A').get_flattened_data()) == {0, 255}, f'{role}: V3.3 alpha edges are not crisp'
+    action_frames = []
+    for index in range(32):
+        frame = playable.crop(((index % 8) * 40, (index // 8) * 60,
+                               (index % 8 + 1) * 40, (index // 8 + 1) * 60))
+        bounds = frame.getchannel('A').getbbox()
+        assert bounds and bounds[3] == 59, f'{role}: V3.3 frame {index} missing or off baseline'
+        assert frame.getpixel((0, 0))[3] == 0, f'{role}: V3.3 frame {index} has opaque padding'
+        if index >= 16:
+            action_frames.append(frame.tobytes())
+    assert len(set(action_frames)) == 16, f'{role}: V3.3 has repeated action poses'
+    print(f'{role}: V3.3 playable atlas, 32 transparent 40×60 frames; approved walk rows preserved')
+
 full = rgba(MAPS / 'home.png', (480, 384))
 base = rgba(MAPS / 'home-base-sample.png', (480, 384))
 bed = rgba(MAPS / 'home-bed-sample.png', (131, 113))
