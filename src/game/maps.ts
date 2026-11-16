@@ -53,6 +53,12 @@ export function createMap(scene: Phaser.Scene, kind: MapKind, env: Environment) 
     ? (homeDetailedLayers.every(layer => ready(layer.key)) ? homeDetailedLayers :
       homeSampleLayers.every(layer => ready(layer.key)) ? homeSampleLayers : homeFallbackLayers)
     : yardLayers[env.season]
-  const layers = definitions.map(layer => scene.add.image(layer.x, layer.y, layer.key).setOrigin(0).setDepth(layer.depth))
+  const layers = definitions.filter(layer => kind !== 'home' || !['blanket-front', 'bed-front'].includes(layer.id)).map(layer => scene.add.image(layer.x, layer.y, layer.key).setOrigin(0).setDepth(layer.depth))
+  // The upper part of this crop contains the cushions, which belong behind
+  // seated characters. Keep only the lower sofa edge in the foreground.
+  if (kind === 'home' && definitions === homeDetailedLayers) {
+    const sofa = layers.findIndex(layer => layer.texture?.key === 'home-detailed-sofa-front')
+    if (sofa >= 0) layers[sofa].setCrop(0, 18, 137, 24)
+  }
   return { layers, map }
 }

@@ -1,3 +1,4 @@
+import { preloadBed } from './BedController'
 import Phaser from 'phaser'
 import { getEnvironment, type Environment } from './environment'
 import { createMap, preloadMapArt, type MapKind, type WorldMap, TILE } from './maps'
@@ -36,6 +37,7 @@ export class HomeScene extends Phaser.Scene {
   ) { super('home-world') }
 
   preload() {
+    preloadBed(this)
     preloadCharacters(this)
     preloadMapArt(this)
   }
@@ -59,7 +61,6 @@ export class HomeScene extends Phaser.Scene {
     this.playerShadow = this.add.ellipse(this.player.x, this.player.y - 2, 18, 6, 0x46372d, 0.26).setDepth(9)
     this.npcShadow = this.add.ellipse(this.companion.npc.x, this.companion.npc.y - 2, 18, 6, 0x46372d, 0.26).setDepth(9)
     this.cameras.main.setRoundPixels(true)
-    this.cameras.main.startFollow(this.player, true, 0.12, 0.12)
     this.scale.on('resize', this.configureCamera, this)
     this.configureCamera()
     this.time.addEvent({ delay: 60_000, loop: true, callback: () => {
@@ -99,7 +100,6 @@ export class HomeScene extends Phaser.Scene {
     } else if (this.environment.phase === 'night') {
       this.atmosphere.fillStyle(0x342d45, 0.12).fillRect(0, 0, width, height)
     }
-    this.cameras.main.setBounds(0, 0, width, height)
     this.configureCamera()
     this.onLocation(kind)
   }
@@ -107,9 +107,18 @@ export class HomeScene extends Phaser.Scene {
   private configureCamera() {
     if (!this.world) return
     const width = this.scale.width, height = this.scale.height
-    const zoom = Math.max(2, Math.ceil(Math.max(width / (this.world.width * TILE), height / (this.world.height * TILE))))
+    const camera = this.cameras.main
+    const fit = Math.min(width / (this.world.width * TILE), height / (this.world.height * TILE))
+    const zoom = this.kind === 'home' ? fit : Math.max(2, Math.ceil(Math.max(width / (this.world.width * TILE), height / (this.world.height * TILE))))
     this.cameras.main.setZoom(zoom)
-    this.cameras.main.setBounds(0, 0, this.world.width * TILE, this.world.height * TILE)
+    if (this.kind === 'home') {
+      camera.stopFollow()
+      camera.removeBounds()
+      camera.centerOn(this.world.width * TILE / 2, this.world.height * TILE / 2)
+    } else {
+      camera.setBounds(0, 0, this.world.width * TILE, this.world.height * TILE)
+      if (this.player) camera.startFollow(this.player, true, 0.12, 0.12)
+    }
   }
 
   private changeMap() {
@@ -126,7 +135,7 @@ export class HomeScene extends Phaser.Scene {
       this.facing = destination === 'home' ? 'up' : 'down'
       this.companion?.onMapChanged(this.world, destination, this.environment)
       this.companion?.setPlayerFacing(this.facing, false)
-      this.cameras.main.centerOn(this.player.x, this.player.y)
+      if (destination === 'yard') this.cameras.main.centerOn(this.player.x, this.player.y)
       this.cameras.main.fadeIn(400, 23, 30, 27)
       this.cameras.main.once('camerafadeincomplete', () => {
         this.transitioning = false
@@ -169,6 +178,8 @@ export class HomeScene extends Phaser.Scene {
     this.companion?.update(frameDelta)
     this.player.setDepth(10 + this.player.y / 1000)
     this.companion?.npc.setDepth(10 + this.companion.npc.y / 1000)
+    this.playerShadow?.setVisible(!this.companion?.bed.active('mashuo'))
+    this.npcShadow?.setVisible(!this.companion?.bed.active('mendu'))
     this.playerShadow?.setPosition(this.player.x, this.player.y - 2)
     this.playerName?.setPosition(this.player.x, this.player.y - FRAME_HEIGHT - 1)
     if (this.companion) this.npcShadow?.setPosition(this.companion.npc.x, this.companion.npc.y - 2)

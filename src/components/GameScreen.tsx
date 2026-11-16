@@ -13,6 +13,11 @@ const actions: { id: InteractionAction; label: string; icon: string }[] = [
   { id: 'hug', label: '拥抱', icon: '♥' },
   { id: 'sit', label: '一起坐下', icon: '▤' },
   { id: 'sleep', label: '一起睡觉', icon: '☾' },
+  { id: 'sleep-mashuo', label: '马硕先睡', icon: '☾' },
+  { id: 'sleep-mendu', label: '门都先睡', icon: '☾' },
+  { id: 'wake-mashuo', label: '马硕起床', icon: '☀' },
+  { id: 'wake-mendu', label: '门都起床', icon: '☀' },
+  { id: 'wake', label: '一起起床', icon: '☀' },
   { id: 'free', label: '自由活动', icon: '✿' },
 ]
 const stateNames: Record<CompanionStatus['state'], string> = {

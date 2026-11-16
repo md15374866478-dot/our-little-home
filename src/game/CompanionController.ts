@@ -1,5 +1,6 @@
+import { BedController } from './BedController'
 import Phaser from 'phaser'
-import { activityAnchors, bedSeat, benchSeat, sofaSeat, type DuoSeat } from './anchors'
+import { activityAnchors, benchSeat, sofaSeat, type DuoSeat } from './anchors'
 import { BehaviorMachine, type BehaviorState, type InteractionAction, type Intent } from './behavior'
 import { showIdle, showPose, showWalk, type Role } from './characterAnimations'
 import { FRAME_HEIGHT } from './characterAssets'
@@ -18,6 +19,7 @@ const apart = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y)
 export class CompanionController {
   readonly npc: Phaser.GameObjects.Sprite
   readonly machine = new BehaviorMachine()
+  bed: BedController
   private route: RouteFollower
   private dialogue = new DialogueBook()
   private name: Phaser.GameObjects.Text
@@ -56,16 +58,21 @@ export class CompanionController {
     }).setOrigin(0.5, 1).setDepth(20)
     this.bubble = new DialogueBubble(scene, this.npc)
     this.route = new RouteFollower(() => this.world, (role, direction, moving) => this.motion(role, direction, moving))
+    this.bed = new BedController(scene, { mashuo: player, mendu: this.npc },
+      (person, point) => this.route.navigate(person === 'mashuo' ? player : this.npc, person, point),
+      person => this.route.cancel(person), () => this.publish())
+    this.bed.setVisible(location === 'home')
     this.autonomyDue = scene.time.now + 5500
     this.publish()
   }
 
-  get status(): CompanionStatus { return { state: this.machine.state, intent: this.machine.intent } }
+  get status(): CompanionStatus { return { state: this.bed?.occupied ? (this.bed.state.phase('mendu') === 'asleep' ? 'SLEEPING' : this.bed.active('mendu') ? 'TRANSITIONING' : 'IDLE') : this.machine.state, intent: this.machine.intent } }
   get proximity() { return apart(this.player, this.npc) }
-  isPlayerLocked() { return this.route.busy('mashuo') || ['TRANSITIONING', 'SITTING', 'SLEEPING', 'HUGGING', 'TALKING'].includes(this.machine.state) }
+  isPlayerLocked() { return this.bed.active('mashuo') || this.route.busy('mashuo') || ['TRANSITIONING', 'SITTING', 'SLEEPING', 'HUGGING', 'TALKING'].includes(this.machine.state) }
   canPlayerOccupy(x: number, y: number) { return this.machine.intent !== 'hand' || apart({ x, y }, this.npc) >= 22 }
 
   setPlayerFacing(direction: Direction, moving: boolean) {
+    if (this.bed.active('mashuo')) return
     this.facing.mashuo = direction
     if (!moving && this.handPoseReady()) this.handPose(this.player, 'mashuo', 'hand')
     else this.motion('mashuo', direction, moving)
@@ -86,11 +93,24 @@ export class CompanionController {
   }
 
   playerMovementRequested() {
+    if (this.bed.active('mashuo')) { void this.bed.wake('mashuo'); return }
+    if (this.bed.occupied) return
     if (this.isPlayerLocked() && !this.route.busy('mashuo') && this.machine.state !== 'TRANSITIONING') void this.request('free')
     else if (this.route.busy('mashuo')) void this.request('free')
   }
 
   async request(action: InteractionAction) {
+    if (['sleep', 'sleep-mashuo', 'sleep-mendu', 'wake', 'wake-mashuo', 'wake-mendu'].includes(action)) {
+      if (this.location !== 'home') { this.notice('双人床在小屋里。'); return }
+      if (this.poseSpot) await this.request('free')
+      if (!this.bed.occupied) { this.cancelWork(); this.machine.cancel() }
+      const persons = action.endsWith('-mashuo') ? ['mashuo'] as const : action.endsWith('-mendu') ? ['mendu'] as const : ['mashuo', 'mendu'] as const
+      const waking = action.startsWith('wake')
+      await Promise.all(persons.map(person => waking ? this.bed.wake(person) : this.bed.sleep(person)))
+      this.autonomyDue = this.scene.time.now + 6000
+      this.publish(); return
+    }
+    if (this.bed.occupied) await Promise.all([this.bed.wake('mashuo'), this.bed.wake('mendu')])
     const previous = this.machine.state
     const token = this.machine.begin(action)
     this.cancelWork()
@@ -122,10 +142,6 @@ export class CompanionController {
       case 'hand': await this.startHand(token); break
       case 'hug': await this.startHug(token); break
       case 'sit': await this.startSeat(token, this.location === 'home' ? sofaSeat : benchSeat, 'SITTING'); break
-      case 'sleep':
-        if (this.location !== 'home') this.fail(token, '双人床在小屋里，先回家吧。')
-        else await this.startSeat(token, bedSeat, 'SLEEPING')
-        break
       case 'talk': await this.startTalk(token); break
     }
     this.publish()
@@ -254,6 +270,7 @@ export class CompanionController {
   }
 
   private updateAutonomy() {
+    if (this.bed.occupied) return
     if (this.machine.intent !== 'free' || this.machine.state === 'TRANSITIONING') return
     if (this.machine.holdsPlayerInteraction) return
     if (this.scene.time.now < this.autonomyDue) return
@@ -277,7 +294,8 @@ export class CompanionController {
     this.autonomyDue = this.scene.time.now + 30000
     this.publish()
     void this.route.navigate(this.npc, 'mendu', anchor.position).then(success => {
-      if (this.machine.intent !== 'free' || this.machine.state !== 'WANDER') return
+      if (this.bed.occupied) return
+    if (this.machine.intent !== 'free' || this.machine.state !== 'WANDER') return
       if (!success) {
         this.machine.autonomous('IDLE')
         this.autonomyDue = this.scene.time.now + 5500
@@ -291,6 +309,7 @@ export class CompanionController {
   }
 
   update(delta: number) {
+    this.bed.update(this.scene.time.now)
     this.route.update(delta)
     if (this.machine.intent === 'follow' || this.machine.intent === 'hand') this.updateFollowing()
     else this.updateAutonomy()
@@ -306,12 +325,17 @@ export class CompanionController {
   }
 
   onMapChanged(world: WorldMap, location: MapKind, environment: Environment) {
+    this.bed.dispose()
     this.world = world
     this.location = location
     this.environment = environment
     this.poseSpot = undefined
     this.exitPromise = undefined
     this.npc.setPosition(location === 'home' ? 18.5 * 16 : 25.5 * 16, location === 'home' ? 20.5 * 16 : 17.5 * 16)
+    this.bed = new BedController(this.scene, { mashuo: this.player, mendu: this.npc },
+      (person, point) => this.route.navigate(person === 'mashuo' ? this.player : this.npc, person, point),
+      person => this.route.cancel(person), () => this.publish())
+    this.bed.setVisible(location === 'home')
     this.machine.sceneChanged()
     this.autonomyDue = this.scene.time.now + 6000
     this.followDue = this.scene.time.now + 500
@@ -405,6 +429,7 @@ export class CompanionController {
   private publish() { this.onStatus(this.status) }
 
   dispose() {
+    this.bed.dispose()
     this.cancelWork()
     for (const tween of this.exitTweens) tween.stop()
     this.noticeEvent?.remove(false)
