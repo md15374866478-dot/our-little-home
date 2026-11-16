@@ -70,3 +70,5 @@ npm run build
 Phase 3.4.1 的实际双人睡眠验收入口为 `/bed-review/`，含连续入睡／起床 MP4 和游戏截图。游戏互动菜单支持两人分别入睡、分别起床和一起起床，详细资源与状态说明见 [双人睡眠验收](docs/BED_SLEEP_REVIEW.md)。
 
 Phase 3.5 的 `/clarity-review/` 提供同镜头与同人物尺寸的室内、秋季庭院新旧截图、局部放大及实际 Canvas 数据。Retina Canvas 最高按 DPR 2 渲染；场景原生纹理分辨率与 16×16 世界坐标分离。室内原图以 1402×1122 加载，秋季庭院为 1427×1102；其他季节仍保留旧素材。完整排查与限制见 [画质与渲染记录](docs/PHASE35_RENDER_AUDIT.md)。
+
+Lucky 宠物开发分支在原游戏中加入独立宠物、狗窝与互动菜单。点击 Lucky 或「与 Lucky 互动」可跟随、抚摸、抱起／放下、玩球、喂食和回窝睡觉。`/lucky-review/` 提供四方向与姿态动画、实际游戏截图及连续录像。素材规格、主要文件和验证边界见 [Lucky 验收说明](docs/LUCKY_REVIEW.md)。

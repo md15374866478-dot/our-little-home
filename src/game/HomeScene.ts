@@ -1,3 +1,6 @@
+import { LuckyController } from './LuckyController'
+import { preloadLucky, registerLucky } from './luckyAssets'
+import type { PetAction } from './petBehavior'
 import { renderDensity, roomZoom } from './renderScale'
 import { preloadBed } from './BedController'
 import Phaser from 'phaser'
@@ -19,6 +22,7 @@ export class HomeScene extends Phaser.Scene {
   private playerShadow?: Phaser.GameObjects.Ellipse
   private npcShadow?: Phaser.GameObjects.Ellipse
   private companion?: CompanionController
+  lucky?: LuckyController
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys
   private keys!: Record<'W' | 'A' | 'S' | 'D', Phaser.Input.Keyboard.Key>
   private transitioning = false
@@ -28,6 +32,7 @@ export class HomeScene extends Phaser.Scene {
   private atmosphere?: Phaser.GameObjects.Graphics
   private rain?: Phaser.GameObjects.Graphics
   private lastFrameTime = 0
+  private humanRequestRevision = 0
 
   constructor(
     private onLocation: (location: MapKind) => void,
@@ -35,9 +40,11 @@ export class HomeScene extends Phaser.Scene {
     private onStatus: (status: CompanionStatus) => void,
     private onMessage: (message: string) => void,
     private onOpenMenu: () => void,
+    private onOpenPetMenu: () => void = () => {},
   ) { super('home-world') }
 
   preload() {
+    preloadLucky(this)
     preloadBed(this)
     preloadCharacters(this)
     preloadMapArt(this)
@@ -46,6 +53,7 @@ export class HomeScene extends Phaser.Scene {
   create() {
     this.environment = getEnvironment()
     registerCharacters(this)
+    registerLucky(this)
     this.cursors = this.input.keyboard!.createCursorKeys()
     this.keys = this.input.keyboard!.addKeys('W,A,S,D') as typeof this.keys
     this.input.keyboard!.addCapture(['UP', 'DOWN', 'LEFT', 'RIGHT'])
@@ -59,6 +67,8 @@ export class HomeScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '9px', color: '#fff3d5', backgroundColor: '#634b45', padding: { x: 3, y: 2 },
     }).setOrigin(0.5, 1).setDepth(20)
     this.companion = new CompanionController(this, this.player, this.world, this.kind, this.environment, this.onStatus, this.onMessage, this.onOpenMenu)
+    this.lucky = new LuckyController(this, this.world, this.kind, this.player, this.companion.npc, this.onMessage, this.onOpenPetMenu)
+    this.companion.setPetAvoidance((x,y) => !this.lucky?.blocks({x,y}))
     this.playerShadow = this.add.ellipse(this.player.x, this.player.y - 2, 18, 6, 0x46372d, 0.26).setDepth(9)
     this.npcShadow = this.add.ellipse(this.companion.npc.x, this.companion.npc.y - 2, 18, 6, 0x46372d, 0.26).setDepth(9)
     this.cameras.main.setRoundPixels(true)
@@ -75,13 +85,21 @@ export class HomeScene extends Phaser.Scene {
     } })
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off('resize', this.configureCamera, this)
+      this.lucky?.dispose()
       this.companion?.dispose()
       touchInput.clear()
     })
     this.onReady(this)
   }
 
-  requestInteraction(action: InteractionAction) { return this.companion?.request(action) }
+  async requestInteraction(action: InteractionAction) {
+    const revision=++this.humanRequestRevision
+    const ready=await this.lucky?.makeRoom()
+    if(ready===false){this.onMessage('Lucky 暂时让不开，先带它到空地吧。');return}
+    if(revision!==this.humanRequestRevision)return
+    return this.companion?.request(action)
+  }
+  requestPetInteraction(action: PetAction) { this.humanRequestRevision++; this.lucky?.request(action) }
   setInteractionMenuOpen(open: boolean) { this.companion?.setMenuOpen(open) }
 
   private buildMap(kind: MapKind) {
@@ -132,6 +150,7 @@ export class HomeScene extends Phaser.Scene {
     if (this.transitioning || this.time.now - this.transitionAt < 1000) return
     this.transitioning = true
     this.player.anims.stop()
+    this.lucky?.beginSceneChange()
     this.companion?.beginSceneChange()
     this.cameras.main.fadeOut(400, 23, 30, 27)
     this.cameras.main.once('camerafadeoutcomplete', () => {
@@ -141,6 +160,7 @@ export class HomeScene extends Phaser.Scene {
         destination === 'home' ? 20 * TILE : 17 * TILE)
       this.facing = destination === 'home' ? 'up' : 'down'
       this.companion?.onMapChanged(this.world, destination, this.environment)
+      this.lucky?.onMapChanged(this.world, destination)
       this.companion?.setPlayerFacing(this.facing, false)
       if (destination === 'yard') this.cameras.main.centerOn(this.player.x, this.player.y)
       this.cameras.main.fadeIn(400, 23, 30, 27)
@@ -174,14 +194,15 @@ export class HomeScene extends Phaser.Scene {
       while (remaining > 0) {
         const distance = Math.min(remaining, 32) * 0.105
         const nextX = this.player.x + dx * distance
-        if (canStand(this.world, nextX, this.player.y) && this.companion?.canPlayerOccupy(nextX, this.player.y)) this.player.x = nextX
+        if (canStand(this.world, nextX, this.player.y) && this.companion?.canPlayerOccupy(nextX, this.player.y) && !this.lucky?.blocks({ x: nextX, y: this.player.y })) this.player.x = nextX
         const nextY = this.player.y + dy * distance
-        if (canStand(this.world, this.player.x, nextY) && this.companion?.canPlayerOccupy(this.player.x, nextY)) this.player.y = nextY
+        if (canStand(this.world, this.player.x, nextY) && this.companion?.canPlayerOccupy(this.player.x, nextY) && !this.lucky?.blocks({ x: this.player.x, y: nextY })) this.player.y = nextY
         remaining -= 32
       }
       this.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')
       this.companion?.setPlayerFacing(this.facing, true)
     } else if (canMove) this.companion?.setPlayerFacing(this.facing, false)
+    this.lucky?.update(frameDelta)
     this.companion?.update(frameDelta)
     this.player.setDepth(10 + this.player.y / 1000)
     this.companion?.npc.setDepth(10 + this.companion.npc.y / 1000)

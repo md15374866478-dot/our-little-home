@@ -11,6 +11,7 @@ export function createGame(
   onStatus: (status: CompanionStatus) => void,
   onMessage: (message: string) => void,
   onOpenMenu: () => void,
+  onOpenPetMenu: () => void = () => {},
 ) {
   const legacy = new URLSearchParams(location.search).get('render') === 'legacy'
   const density = legacy ? 1 : renderDensity(window.devicePixelRatio)
@@ -23,7 +24,7 @@ export function createGame(
     roundPixels: true,
     scale: { mode: Phaser.Scale.NONE, width: Math.round(parent.clientWidth * density), height: Math.round(parent.clientHeight * density), zoom: 1 / density, autoRound: false },
     render: { pixelArt: true, antialias: false },
-    scene: [new HomeScene(onLocation, onReady, onStatus, onMessage, onOpenMenu)],
+    scene: [new HomeScene(onLocation, onReady, onStatus, onMessage, onOpenMenu, onOpenPetMenu)],
   })
   const resize = () => {
     const density = legacy ? 1 : renderDensity(window.devicePixelRatio)

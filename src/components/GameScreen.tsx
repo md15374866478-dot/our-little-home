@@ -1,3 +1,4 @@
+import type { PetAction } from '../game/petBehavior'
 import { useEffect, useRef, useState } from 'react'
 import type Phaser from 'phaser'
 import type { MapKind } from '../game/maps'
@@ -6,6 +7,11 @@ import type { HomeScene } from '../game/HomeScene'
 import type { CompanionStatus } from '../game/CompanionController'
 import type { InteractionAction } from '../game/behavior'
 
+const petActions: {id: PetAction; label:string}[] = [
+  {id:'follow',label:'跟随马硕'},{id:'follow-mendu',label:'跟随门都'},
+  {id:'pet',label:'抚摸 Lucky'},{id:'carry',label:'抱起 Lucky'},{id:'release',label:'放下 Lucky'},
+  {id:'ball',label:'玩球'},{id:'feed',label:'喂食'},{id:'sleep',label:'回狗窝睡觉'},{id:'free',label:'自由活动'},
+]
 const actions: { id: InteractionAction; label: string; icon: string }[] = [
   { id: 'talk', label: '对话', icon: '✦' },
   { id: 'follow', label: '跟随我', icon: '➜' },
@@ -41,6 +47,7 @@ export function GameScreen({ onLeave }: { onLeave: () => void }) {
   const [location, setLocation] = useState<MapKind>('yard')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [petMenuOpen, setPetMenuOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [status, setStatus] = useState<CompanionStatus>({ state: 'IDLE', intent: 'free' })
   const [message, setMessage] = useState('')
@@ -55,9 +62,10 @@ export function GameScreen({ onLeave }: { onLeave: () => void }) {
         sceneRef.current = scene
         loadingTimer = window.setTimeout(() => { if (active) setLoading(false) }, Math.max(0, 650 - (Date.now() - started)))
       }, setStatus, setMessage, () => {
+        setPetMenuOpen(false)
         setMenuOpen(true)
         sceneRef.current?.setInteractionMenuOpen(true)
-      })
+      }, () => { setMenuOpen(false); setPetMenuOpen(true); sceneRef.current?.setInteractionMenuOpen(true) })
       if (import.meta.env.DEV) Object.assign(window, { __ourLittleHomeGame: game })
     }).catch(() => { if (active) { setError(true); setLoading(false) } })
     const clear = () => touchInput.clear()
@@ -73,6 +81,7 @@ export function GameScreen({ onLeave }: { onLeave: () => void }) {
     }
   }, [])
   const toggleMenu = () => {
+    setPetMenuOpen(false)
     const next = !menuOpen
     setMenuOpen(next)
     sceneRef.current?.setInteractionMenuOpen(next)
@@ -93,6 +102,8 @@ export function GameScreen({ onLeave }: { onLeave: () => void }) {
       <div className="npc-indicator">门都 · {stateNames[status.state]}</div>
       <div className="game-help">{message || (location === 'yard' ? '沿石子路走向小屋门口' : '走到南侧房门回到庭院')}<span>{message ? '' : ' · WASD / 方向键移动'}</span></div>
       <button className="interact-launch" aria-expanded={menuOpen} aria-controls="interaction-menu" onClick={toggleMenu}>✦ <span>与门都互动</span></button>
+      <button className="pet-launch" aria-expanded={petMenuOpen} onClick={() => {setMenuOpen(false);setPetMenuOpen(!petMenuOpen);sceneRef.current?.setInteractionMenuOpen(!petMenuOpen)}}>🐾 与 Lucky 互动</button>
+      {petMenuOpen && <div className="interaction-menu pet-menu" role="menu" aria-label="与 Lucky 互动"><div className="interaction-title"><span>Lucky · 活泼黏人</span><button aria-label="关闭宠物菜单" onClick={()=>{setPetMenuOpen(false);sceneRef.current?.setInteractionMenuOpen(false)}}>×</button></div><div className="interaction-options">{petActions.map(action=><button key={action.id} role="menuitem" onClick={()=>{setPetMenuOpen(false);sceneRef.current?.setInteractionMenuOpen(false);sceneRef.current?.requestPetInteraction(action.id)}}>{action.label}</button>)}</div></div>}
       {menuOpen && <div className="interaction-menu" id="interaction-menu" role="menu" aria-label="与门都互动">
         <div className="interaction-title"><span>✦ 与门都一起</span><button onClick={toggleMenu} aria-label="关闭互动菜单">×</button></div>
         <div className="interaction-options">{actions.map(action => <button key={action.id} role="menuitem" onClick={() => chooseAction(action.id)}><span>{action.icon}</span>{action.label}</button>)}</div>
