@@ -5,7 +5,7 @@ Collision footprints remain defined in src/game/maps.ts.
 """
 from pathlib import Path
 from random import Random
-from PIL import Image, ImageDraw
+from PIL import Image, ImageChops, ImageDraw
 
 OUT = Path(__file__).resolve().parents[1] / 'src' / 'assets' / 'maps'
 OUT.mkdir(parents=True, exist_ok=True)
@@ -115,30 +115,59 @@ def indoor():
     rug(a,29,42,138,116)
     rug(a,172,185,145,122)
     rug(a,343,196,111,103)
+    before_bed=a.image.copy()
     # Bed frame and soft textiles, 2,2 through 9,8.
     a.box(30,33,131,113,'#5c3b2f')
     a.box(33,36,126,105,'#906042')
+    a.box(36,36,120,13,'#5f3e30')
+    a.box(40,37,112,4,'#c08b58')
+    for x in range(42,153,13):
+        a.box(x,40,8,2,'#d2a06d')
+        a.box(x+3,43,2,3,'#81543b')
     a.box(37,40,118,94,'#d8b181')
     a.box(40,43,112,89,'#f5dfb7')
     for x in (40,149):
         a.box(x,35,6,105,'#6e4634');a.box(x+1,39,3,95,'#c08a5b')
         a.box(x-2,33,9,5,'#4d342d')
+        a.box(x-1,36,6,3,'#dfae76')
+        for yy in range(46,132,15):a.box(x+2,yy,1,7,'#8d5c3e')
     for x in (43,96):
         a.box(x,46,49,28,'#b6a089')
         a.box(x+2,46,45,24,'#fff0d4')
         a.box(x+5,50,38,2,'#fff8e8')
         a.box(x+7,66,32,2,'#dfcbb0')
+        a.box(x+3,49,2,16,'#f8e5cb')
+        a.box(x+44,50,2,16,'#dfccb6')
+        for ox,oy in ((14,55),(27,61)):
+            a.box(x+ox,oy,5,4,'#d1ae91')
+            a.box(x+ox+1,oy-1,3,5,'#e5bea2')
+            a.box(x+ox+2,oy+1,1,2,'#c58276')
     a.box(42,78,108,52,'#788365')
     a.box(44,80,104,47,'#89986d')
+    a.box(44,79,104,6,'#d8c5a7')
+    a.box(47,82,98,3,'#f0ddbc')
     for yy in range(84,126,7):
         for xx in range(48,147,12):
             if (xx+yy)%3: a.box(xx,yy,5,2,'#a9ae82')
             else: a.box(xx+2,yy+2,3,3,'#677b60')
-    a.box(43,80,105,5,'#e7d0ab')
+    for yy in range(89,126,12):
+        a.line([(46,yy),(145,yy)],'#73855f')
+        a.line([(46,yy+1),(145,yy+1)],'#a5ac80')
+    for xx in range(49,145,12):
+        a.line([(xx,86),(xx,125)],'#768761')
+        a.line([(xx+1,86),(xx+1,125)],'#b0b48a')
+    for x,y in ((57,97),(85,105),(117,94),(137,117)):
+        a.box(x,y,5,4,'#e4d2ac')
+        a.box(x+1,y-1,3,6,'#e8dcbb')
+        a.box(x+2,y+1,1,2,'#bd8e71')
+    a.box(43,126,106,4,'#667752')
+    a.box(44,128,104,2,'#c8b58f')
     front.box(33,129,126,16,'#5e3e30')
     front.box(36,130,120,9,'#a6744d')
     front.box(38,132,116,2,'#d5a370')
+    for x in range(43,151,18):front.box(x,135,10,1,'#704b36')
     for x in (38,148): front.box(x,139,7,6,'#4e342d')
+    after_bed=a.image.copy()
     # Bookshelf 11,2, four tiles wide.
     a.box(174,34,67,52,'#60412f')
     a.box(179,38,57,45,'#af7950')
@@ -219,6 +248,21 @@ def indoor():
     a.box(229,371,24,13,'#593d2e')
     a.box(221,376,40,2,'#d3a171')
     a.save('home.png'); front.save('home-front.png')
+    # Art-review sample: the bed becomes a separately replaceable transparent PNG.
+    bed_box=(30,33,161,146)
+    bed_before=before_bed.crop(bed_box)
+    bed_after=after_bed.crop(bed_box)
+    changed=ImageChops.difference(bed_before,bed_after).convert('RGB').convert('L').point(lambda value:255 if value else 0)
+    bed_after.putalpha(changed)
+    bed_after.save(OUT/'home-bed-sample.png',optimize=True)
+    base=a.image.copy()
+    base.paste(bed_before,bed_box[:2])
+    base.save(OUT/'home-base-sample.png',optimize=True)
+    bed_front_box=(33,129,159,145)
+    front.image.crop(bed_front_box).save(OUT/'home-bed-front-sample.png',optimize=True)
+    other_front=front.image.copy()
+    other_front.paste((0,0,0,0),bed_front_box)
+    other_front.save(OUT/'home-other-front-sample.png',optimize=True)
 
 SEASONS={
     'spring': {'grass':('#76955e','#89a46d','#688653'), 'leaf':('#6d9563','#92ad72','#537b55'), 'flower':('#f3b7b5','#fff0ce','#d7a7c4')},

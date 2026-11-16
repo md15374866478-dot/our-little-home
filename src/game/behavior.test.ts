@@ -25,4 +25,26 @@ describe('NPC behavior transitions', () => {
     expect(machine.state).toBe('FOLLOWING')
     expect(machine.intent).toBe('follow')
   })
+
+  it('keeps player-led poses active when an old autonomy timer expires', () => {
+    const machine = new BehaviorMachine()
+    for (const [action, state] of [
+      ['sit', 'SITTING'], ['sleep', 'SLEEPING'], ['hug', 'HUGGING'], ['talk', 'TALKING'],
+    ] as const) {
+      const token = machine.begin(action)
+      expect(machine.finish(token, state)).toBe(true)
+      expect(machine.holdsPlayerInteraction).toBe(true)
+      machine.autonomous('IDLE')
+      expect(machine.state).toBe(state)
+    }
+    const free = machine.begin('free')
+    machine.finish(free, 'IDLE')
+    expect(machine.holdsPlayerInteraction).toBe(false)
+    machine.autonomous('WANDER')
+    expect(machine.state).toBe('WANDER')
+    machine.autonomous('SITTING')
+    expect(machine.holdsPlayerInteraction).toBe(false)
+    machine.autonomous('IDLE')
+    expect(machine.state).toBe('IDLE')
+  })
 })

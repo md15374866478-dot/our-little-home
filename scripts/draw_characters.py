@@ -68,30 +68,52 @@ def frame(role, direction='down', phase=1, action='walk'):
         box(22, 17+bob, 25, 34+bob, 'hairshade')
         line([(7, 20+bob), (7, 29+bob), (9, 32+bob)], 'hairlight')
         line([(24, 20+bob), (24, 31+bob), (22, 34+bob)], 'hairlight')
+        line([(8, 24+bob), (8, 31+bob)], 'hairglint')
+        line([(23, 24+bob), (23, 31+bob)], 'hairglint')
     # Torso, arms and fabric have three value levels.
     if role == 'mashuo':
         box(8, 25+bob, 23, 39+bob, 'outline')
         box(9, 26+bob, 22, 37+bob, 'dress')
         box(10, 27+bob, 21, 29+bob, 'dresslight')
         box(10, 31+bob, 21, 38+bob, 'dresslight')
+        box(9, 37+bob, 22, 40+bob, 'dress')
+        box(10, 39+bob, 13, 40+bob, 'plaidshade')
+        box(17, 39+bob, 21, 40+bob, 'plaidshade')
         for xx in (12, 17, 21):
             line([(xx, 30+bob), (xx, 37+bob)], 'plaidshade')
         for yy in (32, 36):
             line([(10, yy+bob), (21, yy+bob)], 'plaid')
+        for xx,yy in ((11,33),(15,35),(19,32),(13,38),(20,38)):
+            dot(xx,yy+bob,'plaid')
         box(13, 25+bob, 18, 28+bob, 'cream')
         box(14, 27+bob, 17, 29+bob, 'creamshade')
+        line([(12,25+bob),(15,28+bob)],'cream')
+        line([(20,25+bob),(17,28+bob)],'cream')
         dot(16, 32+bob, 'cream'); dot(16, 35+bob, 'cream')
+        for xx, yy in ((11,34),(19,34),(15,38)):
+            dot(xx, yy+bob, 'plaid')
         box(6, 27+bob, 9, 35+bob, 'outline'); box(7, 28+bob, 8, 34+bob, 'dress')
         box(22, 27+bob, 25, 35+bob, 'outline'); box(23, 28+bob, 24, 34+bob, 'dress')
+        box(7, 33+bob, 8, 34+bob, 'creamshade')
+        box(23, 33+bob, 24, 34+bob, 'creamshade')
     else:
         box(7, 24+bob, 24, 39+bob, 'outline')
         box(8, 25+bob, 23, 37+bob, 'hoodie')
         box(10, 26+bob, 21, 30+bob, 'hoodielight')
         box(11, 30+bob, 20, 36+bob, 'hoodie')
+        box(11, 25+bob, 21, 27+bob, 'hoodieshade')
+        box(12, 27+bob, 14, 31+bob, 'hoodielight')
+        box(18, 27+bob, 20, 31+bob, 'hoodielight')
         box(15, 25+bob, 17, 36+bob, 'hoodieshade')
         line([(16, 27+bob), (16, 35+bob)], 'zip')
         box(10, 34+bob, 13, 36+bob, 'hoodieshade')
         box(19, 34+bob, 22, 36+bob, 'hoodieshade')
+        line([(11,33+bob),(13,32+bob)],'hoodielight')
+        line([(20,32+bob),(22,33+bob)],'hoodielight')
+        box(12, 29+bob, 13, 32+bob, 'zip')
+        box(19, 29+bob, 20, 32+bob, 'zip')
+        box(12, 35+bob, 20, 37+bob, 'hoodieshade')
+        line([(13,35+bob),(19,35+bob)],'hoodielight')
         box(6, 26+bob, 9, 36+bob, 'outline'); box(7, 27+bob, 8, 34+bob, 'hoodie')
         box(23, 26+bob, 26, 36+bob, 'outline'); box(24, 27+bob, 25, 34+bob, 'hoodie')
         box(10, 38+bob, 22, 41+bob, 'trouser')
@@ -121,6 +143,7 @@ def frame(role, direction='down', phase=1, action='walk'):
             box(18, 12+bob, 23, 15+bob, 'hair')
             if direction == 'down':
                 box(12, 19+bob, 13, 20+bob, 'eye'); box(19, 19+bob, 20, 20+bob, 'eye')
+                dot(12, 19+bob, 'cream'); dot(19, 19+bob, 'cream')
                 dot(10, 21+bob, 'cheek'); dot(22, 21+bob, 'cheek')
                 if action == 'talk-b': box(16, 22+bob, 17, 22+bob, 'eye')
             elif direction == 'left': box(10, 19+bob, 11, 20+bob, 'eye')
@@ -134,11 +157,16 @@ def frame(role, direction='down', phase=1, action='walk'):
         box(21, 8+bob, 23, 10+bob, 'creamshade')
         for xx, yy in ((9,8), (12,6), (19,7), (23,12), (8,22), (24,25)):
             dot(xx, yy+bob, 'hairlight')
+        line([(9, 7+bob), (15, 6+bob)], 'hairshade')
     else:
         # Irregular layered black hair and relaxed fringe.
         for x0,y0,x1,y1 in ((5,8,10,16),(7,4,14,16),(12,3,20,15),(18,5,26,17),(23,8,28,18),(4,13,8,22)):
             box(x0,y0+bob,x1,y1+bob,'outline')
+        box(6, 18+bob, 10, 25+bob, 'outline')
+        box(23, 17+bob, 27, 25+bob, 'outline')
         box(7, 7+bob, 25, 22+bob, 'hair')
+        box(7, 19+bob, 9, 24+bob, 'hairshade')
+        box(24, 19+bob, 26, 24+bob, 'hairshade')
         if direction != 'up':
             box(9, 14+bob, 23, 24+bob, 'skin')
             box(10, 15+bob, 22, 18+bob, 'skinlight')
@@ -147,6 +175,7 @@ def frame(role, direction='down', phase=1, action='walk'):
             box(19, 11+bob, 24, 16+bob, 'hair')
             if direction == 'down':
                 box(12, 20+bob, 13, 20+bob, 'eye'); box(20, 20+bob, 21, 20+bob, 'eye')
+                dot(12, 19+bob, 'creamshade'); dot(20, 19+bob, 'creamshade')
                 dot(10, 22+bob, 'cheek'); dot(23, 22+bob, 'cheek')
                 if action == 'talk-b': box(17, 23+bob, 18, 23+bob, 'eye')
             elif direction == 'left': dot(10, 20+bob, 'eye')

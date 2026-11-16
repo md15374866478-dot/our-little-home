@@ -9,6 +9,12 @@ export class BehaviorMachine {
   lastInteraction: InteractionAction | null = null
   private revision = 0
 
+  /** Autonomous dwell timers cannot end an active player-led interaction. */
+  get holdsPlayerInteraction() {
+    return this.state === 'HUGGING' || this.state === 'SLEEPING' || this.state === 'TALKING'
+      || (this.state === 'SITTING' && this.lastInteraction === 'sit')
+  }
+
   begin(action: InteractionAction): number {
     this.revision++
     this.intent = 'free'
@@ -27,7 +33,7 @@ export class BehaviorMachine {
   }
 
   autonomous(state: BehaviorState) {
-    if (this.intent === 'free' && this.state !== 'TRANSITIONING') this.state = state
+    if (this.intent === 'free' && this.state !== 'TRANSITIONING' && !this.holdsPlayerInteraction) this.state = state
   }
 
   fail(revision: number) {
