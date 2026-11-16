@@ -5,3 +5,6 @@
 /* Keep the interaction controls above the playfield's usual walking area. */
 .interact-launch{top:72px;bottom:auto}.interaction-menu{top:130px;max-height:calc(100% - 148px)}@media(max-width:700px){.interact-launch{top:66px;bottom:auto}.interaction-menu{top:123px;max-height:calc(100% - 135px)}}@media(max-height:520px){.interaction-menu{top:112px;max-height:calc(100% - 122px)}}
 .pet-launch{position:absolute;z-index:4;right:24px;top:134px;min-height:48px;min-width:154px;border:2px solid #ecd7a7;background:#ece0bc;color:#243b30;box-shadow:4px 4px 0 #10241b;font:700 14px Georgia,'Songti SC',serif;touch-action:manipulation}.pet-menu{top:194px;max-height:calc(100% - 212px)}@media(max-width:700px){.pet-launch{top:122px;right:16px;min-width:136px;font-size:12px}.pet-menu{top:178px;max-height:calc(100% - 190px)}}@media(max-height:520px){.pet-launch{top:112px}.pet-menu{top:164px;max-height:calc(100% - 176px)}}
+
+/* Keep the canvas/pad gesture lock while allowing long action menus to scroll. */
+.game-shell{touch-action:auto}.interaction-menu{touch-action:pan-y;overscroll-behavior:contain}

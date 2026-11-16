@@ -47,6 +47,7 @@ npm run dev -- --port 4180
 # 另一个终端启动上述 Vite
 npx playwright install chromium ffmpeg # 首次需要；或使用系统 Chromium
 CHROMIUM_PATH=/usr/bin/chromium node scripts/qa-lucky-actions.cjs
+node scripts/qa-lucky-retina.cjs # DPR2、触控菜单滚动、移动与睡眠中改变窗口尺寸
 ```
 
 脚本使用真实 Phaser 场景，保存截图、连续录像和结果 JSON 到 `/tmp/lucky-actions-qa`。没有改造测试专用地图，也没有用传送跳过寻路。检查包括两人抚摸/抱持、四向抱持移动、咬球和放球、狗窝遮挡、三人流程、取消恢复、原房门往返以及牵手/拥抱/沙发回归。仅开发模式暴露的场景引用用于观察阶段及调用与菜单相同的方法，公开生产构建不暴露它。
@@ -59,7 +60,7 @@ CHROMIUM_PATH=/usr/bin/chromium node scripts/qa-lucky-actions.cjs
 
 - TypeScript 类型检查与生产构建通过；38 项单元测试通过。
 - `qa-lucky-actions.cjs` 的9组真实场景检查全部通过，未捕获浏览器运行异常；连续录像约3分25秒。截图时仅暂停实际场景取帧，再继续执行，没有重新摆放角色。
-- 独立 Chromium 1194×834、DPR 2 验证：Canvas backing width 2300 / CSS width 1150、镜头物理缩放3；触控方向键可移动，页面scrollY保持0；睡眠期间改为1024×768后状态保留并正常起床。
+- 独立 Chromium 1194×834、DPR 2 验证：Canvas backing width 2300 / CSS width 1150、镜头物理缩放3；触控方向键可移动，菜单可用手指滚动115 px，页面scrollY保持0；睡眠期间改为1024×768后状态保留并正常起床。
 - 普通生产构建验证：两个三人睡眠入口禁用，无开发调试桥。
 - 真实 iPad Safari、长期设备帧率与新动作的美术自然程度仍待本人验收。
 

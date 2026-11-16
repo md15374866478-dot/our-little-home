@@ -29,7 +29,9 @@
     "physicalZoom": 3,
     "touchMovement": true,
     "pageScrolled": false,
-    "resizeSleepPreserved": true
+    "resizeSleepPreserved": true,
+    "touchMenuScroll": true,
+    "menuScrollTop": 115
   },
   "ipadSafari": "Pending real device verification"
 }
