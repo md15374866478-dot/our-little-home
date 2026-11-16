@@ -27,6 +27,29 @@ for role in ('mashuo', 'mendu'):
         assert len({frame.tobytes() for frame in frames}) == 4, f'{role}: repeated walking frame in direction {direction}'
     print(f'{role}: 32 RGBA frames, 16 distinct walking frames, stable foot baseline')
 
+for role, source_size in (('mashuo', (1261, 1247)), ('mendu', (1247, 1261))):
+    source = rgba(ROOT / 'art-source' / 'characters-v31' / f'{role}-walk-source.png', source_size)
+    assert source.getchannel('A').getextrema()[0] == 0, f'{role}: V3.1 source has no transparency'
+    sheet = rgba(CHARACTERS / 'review' / f'{role}-v31-walk.png', (320, 120))
+    assert set(sheet.getchannel('A').get_flattened_data()) == {0, 255}, f'{role}: V3.1 final edges are not pixel-crisp'
+    for direction in range(4):
+        frames = []
+        tops, centers = [], []
+        for phase in range(4):
+            index = direction * 4 + phase
+            frame = sheet.crop(((index % 8) * 40, (index // 8) * 60,
+                                (index % 8 + 1) * 40, (index // 8 + 1) * 60))
+            bounds = frame.getchannel('A').getbbox()
+            assert bounds and bounds[3] == 59, f'{role}: V3.1 foot baseline shifted at frame {index}'
+            assert frame.getpixel((0, 0))[3] == 0, f'{role}: V3.1 background is not transparent at frame {index}'
+            tops.append(bounds[1])
+            centers.append((bounds[0] + bounds[2]) / 2)
+            frames.append(frame)
+        assert len({frame.tobytes() for frame in frames}) == 4, f'{role}: V3.1 direction {direction} repeats a walk frame'
+        assert max(tops) - min(tops) <= 3, f'{role}: V3.1 direction {direction} jumps vertically'
+        assert max(centers) - min(centers) <= 2, f'{role}: V3.1 direction {direction} jumps horizontally'
+    print(f'{role}: V3.1 16 transparent 40×60 walk frames, stable foot baseline')
+
 full = rgba(MAPS / 'home.png', (480, 384))
 base = rgba(MAPS / 'home-base-sample.png', (480, 384))
 bed = rgba(MAPS / 'home-bed-sample.png', (131, 113))
