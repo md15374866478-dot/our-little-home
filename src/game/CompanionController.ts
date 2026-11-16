@@ -22,6 +22,12 @@ export class CompanionController {
   bed: BedController
   private petAvoidance: (x: number, y: number) => boolean = () => true
   setPetAvoidance(check: (x: number, y: number) => boolean) { this.petAvoidance = check }
+  private externalLocks = new Set<Role>()
+  private motionOverride?: (role:Role,direction:Direction,moving:boolean)=>boolean
+  setMotionOverride(callback:(role:Role,direction:Direction,moving:boolean)=>boolean){this.motionOverride=callback}
+  lockRole(role:Role,locked:boolean){if(locked)this.externalLocks.add(role);else this.externalLocks.delete(role)}
+  navigateRole(role:Role,point:Point){return this.route.navigate(role==='mashuo'?this.player:this.npc,role,point)}
+  stopRole(role:Role){this.route.cancel(role)}
   private route: RouteFollower
   private dialogue = new DialogueBook()
   private name: Phaser.GameObjects.Text
@@ -70,11 +76,11 @@ export class CompanionController {
 
   get status(): CompanionStatus { return { state: this.bed?.occupied ? (this.bed.state.phase('mendu') === 'asleep' ? 'SLEEPING' : this.bed.active('mendu') ? 'TRANSITIONING' : 'IDLE') : this.machine.state, intent: this.machine.intent } }
   get proximity() { return apart(this.player, this.npc) }
-  isPlayerLocked() { return this.bed.active('mashuo') || this.route.busy('mashuo') || ['TRANSITIONING', 'SITTING', 'SLEEPING', 'HUGGING', 'TALKING'].includes(this.machine.state) }
+  isPlayerLocked() { return this.externalLocks.has('mashuo') || this.bed.active('mashuo') || this.route.busy('mashuo') || ['TRANSITIONING', 'SITTING', 'SLEEPING', 'HUGGING', 'TALKING'].includes(this.machine.state) }
   canPlayerOccupy(x: number, y: number) { return this.machine.intent !== 'hand' || apart({ x, y }, this.npc) >= 22 }
 
   setPlayerFacing(direction: Direction, moving: boolean) {
-    if (this.bed.active('mashuo')) return
+    if (this.externalLocks.has('mashuo') || this.bed.active('mashuo')) return
     this.facing.mashuo = direction
     if (!moving && this.handPoseReady()) this.handPose(this.player, 'mashuo', 'hand')
     else this.motion('mashuo', direction, moving)
@@ -95,6 +101,7 @@ export class CompanionController {
   }
 
   playerMovementRequested() {
+    if(this.externalLocks.has('mashuo'))return
     if (this.bed.active('mashuo')) { void this.bed.wake('mashuo'); return }
     if (this.bed.occupied) return
     if (this.isPlayerLocked() && !this.route.busy('mashuo') && this.machine.state !== 'TRANSITIONING') void this.request('free')
@@ -272,6 +279,7 @@ export class CompanionController {
   }
 
   private updateAutonomy() {
+    if(this.externalLocks.has('mendu'))return
     if (this.bed.occupied) return
     if (this.machine.intent !== 'free' || this.machine.state === 'TRANSITIONING') return
     if (this.machine.holdsPlayerInteraction) return
@@ -360,6 +368,7 @@ export class CompanionController {
   }
 
   private motion(role: Role, direction: Direction, moving: boolean) {
+    if(this.motionOverride?.(role,direction,moving))return
     const sprite = role === 'mashuo' ? this.player : this.npc
     sprite.setFlipX(false)
     if (moving) this.facing[role] = direction

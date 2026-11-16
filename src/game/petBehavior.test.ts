@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PetBehavior } from './petBehavior'
-import { petCanStand, petNear, petPath } from './petNavigation'
+import { petCanStand, petNear, petPath, petDistance } from './petNavigation'
 import type { WorldMap } from './maps'
 const map: WorldMap = { kind: 'home', width: 12, height: 12, blocked: Array.from({length:12},(_,y)=>Array.from({length:12},(_,x)=>x===0||y===0||x===11||y===11||(x===5&&y<8))) }
 describe('Lucky commands and recovery', () => {
@@ -22,6 +22,7 @@ describe('Lucky commands and recovery', () => {
     expect(goal).not.toBeNull()
     expect(petCanStand(map,goal!,[owner])).toBe(true)
   })
+  it('clears off-center people along every segment, not only occupied tiles',()=>{const person={x:138,y:87},start={x:136,y:136},goal={x:136,y:40},path=petPath(map,start,goal,[person]);expect(path).not.toBeNull();let from=start;for(const to of path!){const steps=Math.ceil(petDistance(from,to)/2);for(let i=1;i<=steps;i++){const t=i/steps;expect(petCanStand(map,{x:from.x+(to.x-from.x)*t,y:from.y+(to.y-from.y)*t},[person])).toBe(true)}from=to}})
   it('rejects people and blocked destinations safely', () => {
     expect(petCanStand(map,{x:56,y:56},[{x:56,y:56}])).toBe(false)
     expect(petPath(map,{x:56,y:56},{x:88,y:56},[])).toBeNull()

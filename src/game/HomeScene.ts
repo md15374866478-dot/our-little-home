@@ -1,3 +1,6 @@
+import { PetActionDirector } from './PetActionDirector'
+import { TrioSleepController } from './TrioSleepController'
+import { preloadPerformance } from './performanceAssets'
 import { LuckyController } from './LuckyController'
 import { preloadLucky, registerLucky } from './luckyAssets'
 import type { PetAction } from './petBehavior'
@@ -17,12 +20,16 @@ export class HomeScene extends Phaser.Scene {
   private kind: MapKind = 'yard'
   private world!: WorldMap
   private mapLayers: Phaser.GameObjects.Image[] = []
+  private bedHotspot?:Phaser.GameObjects.Zone
   private player!: Phaser.GameObjects.Sprite
   private playerName?: Phaser.GameObjects.Text
   private playerShadow?: Phaser.GameObjects.Ellipse
   private npcShadow?: Phaser.GameObjects.Ellipse
   private companion?: CompanionController
   lucky?: LuckyController
+  petDirector?: PetActionDirector
+  trio?: TrioSleepController
+  private mapWaiters:((ok:boolean)=>void)[]=[]
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys
   private keys!: Record<'W' | 'A' | 'S' | 'D', Phaser.Input.Keyboard.Key>
   private transitioning = false
@@ -44,6 +51,7 @@ export class HomeScene extends Phaser.Scene {
   ) { super('home-world') }
 
   preload() {
+    preloadPerformance(this)
     preloadLucky(this)
     preloadBed(this)
     preloadCharacters(this)
@@ -68,7 +76,10 @@ export class HomeScene extends Phaser.Scene {
     }).setOrigin(0.5, 1).setDepth(20)
     this.companion = new CompanionController(this, this.player, this.world, this.kind, this.environment, this.onStatus, this.onMessage, this.onOpenMenu)
     this.lucky = new LuckyController(this, this.world, this.kind, this.player, this.companion.npc, this.onMessage, this.onOpenPetMenu)
-    this.companion.setPetAvoidance((x,y) => !this.lucky?.blocks({x,y}))
+    this.petDirector = new PetActionDirector(this,this.lucky,this.companion,this.onMessage)
+    this.trio = new TrioSleepController(this,this.lucky,this.petDirector,this.companion,()=>this.kind,valid=>this.travelHome(valid),this.onMessage)
+    this.lucky.setActionHandler(action=>{void this.requestPetInteraction(action)})
+    this.companion.setPetAvoidance((x,y) => !this.lucky?.blocks({x,y})&&!this.petDirector?.ball.blocks({x,y}))
     this.playerShadow = this.add.ellipse(this.player.x, this.player.y - 2, 18, 6, 0x46372d, 0.26).setDepth(9)
     this.npcShadow = this.add.ellipse(this.companion.npc.x, this.companion.npc.y - 2, 18, 6, 0x46372d, 0.26).setDepth(9)
     this.cameras.main.setRoundPixels(true)
@@ -85,6 +96,10 @@ export class HomeScene extends Phaser.Scene {
     } })
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off('resize', this.configureCamera, this)
+      this.humanRequestRevision++
+      this.mapWaiters.forEach(resolve=>resolve(false));this.mapWaiters=[]
+      this.trio?.dispose()
+      this.petDirector?.dispose()
       this.lucky?.dispose()
       this.companion?.dispose()
       touchInput.clear()
@@ -94,16 +109,38 @@ export class HomeScene extends Phaser.Scene {
 
   async requestInteraction(action: InteractionAction) {
     const revision=++this.humanRequestRevision
-    const ready=await this.lucky?.makeRoom()
-    if(ready===false){this.onMessage('Lucky 暂时让不开，先带它到空地吧。');return}
+    if(action==='trio-sleep'){await this.trio?.start();return}
+    if(action==='trio-wake'||(action==='wake'&&this.trio?.active)){await this.trio?.wake();return}
+    if(this.trio?.active)await this.trio.stop()
     if(revision!==this.humanRequestRevision)return
+    if(!await this.petDirector?.clearForHuman())return
+    const ready=await this.lucky?.makeRoom()
+    if(revision!==this.humanRequestRevision)return
+    if(ready===false){this.onMessage('Lucky 暂时让不开，先带它到空地吧。');return}
     return this.companion?.request(action)
   }
-  requestPetInteraction(action: PetAction) { this.humanRequestRevision++; this.lucky?.request(action) }
+  async requestPetInteraction(action: PetAction) {
+    const revision=++this.humanRequestRevision
+    if(this.trio?.active)await this.trio.stop()
+    if(revision!==this.humanRequestRevision)return
+    return this.petDirector?.request(action)
+  }
+  private async travelHome(valid:()=>boolean) {
+    if(this.kind==='home')return true
+    const results=await Promise.all([
+      this.companion!.navigateRole('mashuo',{x:360,y:248}),
+      this.companion!.navigateRole('mendu',{x:408,y:264}),
+      this.lucky!.navigateTo({x:328,y:264},true),
+    ])
+    if(results.includes(false)||!valid())return false
+    return new Promise<boolean>(resolve=>{this.mapWaiters.push(resolve);this.changeMap()})
+  }
   setInteractionMenuOpen(open: boolean) { this.companion?.setMenuOpen(open) }
 
   private buildMap(kind: MapKind) {
     for (const layer of this.mapLayers) layer.destroy()
+    this.bedHotspot?.destroy()
+    if(kind==='home')this.bedHotspot=this.add.zone(32,34,128,128).setOrigin(0).setInteractive().on('pointerdown',this.onOpenMenu)
     this.atmosphere?.destroy()
     this.rain?.destroy()
     this.kind = kind
@@ -150,6 +187,8 @@ export class HomeScene extends Phaser.Scene {
     if (this.transitioning || this.time.now - this.transitionAt < 1000) return
     this.transitioning = true
     this.player.anims.stop()
+    if(!this.trio?.transfer){this.trio?.resetScene();this.petDirector?.resetScene()}
+    this.petDirector?.ball.clear()
     this.lucky?.beginSceneChange()
     this.companion?.beginSceneChange()
     this.cameras.main.fadeOut(400, 23, 30, 27)
@@ -167,6 +206,7 @@ export class HomeScene extends Phaser.Scene {
       this.cameras.main.once('camerafadeincomplete', () => {
         this.transitioning = false
         this.transitionAt = this.time.now
+        this.mapWaiters.forEach(resolve=>resolve(true));this.mapWaiters=[]
       })
     })
   }
@@ -185,6 +225,8 @@ export class HomeScene extends Phaser.Scene {
     let dx = Number(down('right')) - Number(down('left'))
     let dy = Number(down('down')) - Number(down('up'))
     const requestedMove = Boolean(dx || dy)
+    if(requestedMove&&this.trio?.active){void this.trio.wake()}
+    else if(requestedMove&&this.petDirector?.blocksPlayer())this.petDirector.onMovementRequested()
     if (requestedMove) this.companion?.playerMovementRequested()
     const canMove = !this.companion?.isPlayerLocked()
     if (requestedMove && canMove) {
@@ -194,9 +236,9 @@ export class HomeScene extends Phaser.Scene {
       while (remaining > 0) {
         const distance = Math.min(remaining, 32) * 0.105
         const nextX = this.player.x + dx * distance
-        if (canStand(this.world, nextX, this.player.y) && this.companion?.canPlayerOccupy(nextX, this.player.y) && !this.lucky?.blocks({ x: nextX, y: this.player.y })) this.player.x = nextX
+        if (canStand(this.world, nextX, this.player.y) && this.companion?.canPlayerOccupy(nextX, this.player.y) && !this.lucky?.blocks({ x: nextX, y: this.player.y }) && !this.petDirector?.ball.blocks({x:nextX,y:this.player.y})) this.player.x = nextX
         const nextY = this.player.y + dy * distance
-        if (canStand(this.world, this.player.x, nextY) && this.companion?.canPlayerOccupy(this.player.x, nextY) && !this.lucky?.blocks({ x: this.player.x, y: nextY })) this.player.y = nextY
+        if (canStand(this.world, this.player.x, nextY) && this.companion?.canPlayerOccupy(this.player.x, nextY) && !this.lucky?.blocks({ x: this.player.x, y: nextY }) && !this.petDirector?.ball.blocks({x:this.player.x,y:nextY})) this.player.y = nextY
         remaining -= 32
       }
       this.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')
@@ -206,6 +248,8 @@ export class HomeScene extends Phaser.Scene {
     this.companion?.update(frameDelta)
     this.player.setDepth(10 + this.player.y / 1000)
     this.companion?.npc.setDepth(10 + this.companion.npc.y / 1000)
+    this.petDirector?.update(this.time.now)
+    this.trio?.update(this.time.now)
     this.playerShadow?.setVisible(!this.companion?.bed.active('mashuo'))
     this.npcShadow?.setVisible(!this.companion?.bed.active('mendu'))
     this.playerShadow?.setPosition(this.player.x, this.player.y - 2)

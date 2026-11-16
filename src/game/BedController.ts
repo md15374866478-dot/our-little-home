@@ -30,6 +30,8 @@ export class BedController {
   private operations: Partial<Record<BedPerson, Promise<boolean>>> = {}
   private awakeTextures: Partial<Record<BedPerson, string>> = {}
   private live = true
+  private headLayers=false
+  private heads:Partial<Record<BedPerson,Phaser.GameObjects.Sprite>>={}
   constructor(private scene: Phaser.Scene, private actors: Record<BedPerson, Phaser.GameObjects.Sprite>,
     private navigate: (person: BedPerson, point: Point) => Promise<boolean>,
     private cancelRoute: (person: BedPerson) => void, private changed: () => void) {
@@ -40,7 +42,10 @@ export class BedController {
       mendu: scene.add.image(96, 78, 'bed-quiltMendu').setOrigin(0).setDepth(12),
     }
     this.layers.push(...Object.values(this.quilts))
+    for(const person of people)this.heads[person]=scene.add.sprite(0,0,`bed-${person}`,2).setOrigin(.5,1).setCrop(0,0,40,26).setDepth(12.1).setVisible(false)
   }
+  setHeadLayerEnabled(enabled:boolean){this.headLayers=enabled;if(!enabled)for(const person of people){this.heads[person]?.setVisible(false);this.actors[person].setCrop()}}
+  setMattressOffset(offset:number){this.layers.find(layer=>layer.texture.key==='bed-mattress')?.setY(34+offset)}
   active(person: BedPerson) { return this.state.phase(person) !== 'awake' }
   get occupied() { return people.some(p => this.active(p)) }
   setVisible(visible: boolean) { this.layers.forEach(layer => layer.setVisible(visible)) }
@@ -62,6 +67,9 @@ export class BedController {
   private pose(person: BedPerson, frame: number) {
     this.actors[person].anims.stop()
     this.actors[person].setTexture(`bed-${person}`, frame).setFlipX(false)
+    const split=this.headLayers&&frame>=2
+    if(split)this.actors[person].setCrop(0,26,40,34);else this.actors[person].setCrop()
+    this.heads[person]?.setTexture(`bed-${person}`,frame).setPosition(this.actors[person].x,this.actors[person].y).setVisible(split)
   }
   private async move(person: BedPerson, target: Point, token: number, ms = 700) {
     const actor = this.actors[person], start = { x: actor.x, y: actor.y }
@@ -124,5 +132,5 @@ export class BedController {
       this.quilts[person].setY(78 + Math.round(Math.sin(time / 1200) * 0.6))
     }
   }
-  dispose() { this.live = false; this.layers.forEach(layer => layer.destroy()) }
+  dispose() { this.live = false; this.layers.forEach(layer => layer.destroy());for(const head of Object.values(this.heads))head?.destroy() }
 }

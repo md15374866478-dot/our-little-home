@@ -8,10 +8,11 @@ const center = (index: number, width: number): Point => ({ x: (index % width + 0
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y)
 
 /** Four-way A* checks exactly the same foot clearance as player movement. */
-export function findPath(map: WorldMap, start: Point, goal: Point): Point[] | null {
-  if (!canStand(map, start.x, start.y) || !canStand(map, goal.x, goal.y)) return null
+export function findPath(map: WorldMap, start: Point, goal: Point, allowed?: (point:Point)=>boolean): Point[] | null {
+  if (!canStand(map, start.x, start.y) || !canStand(map, goal.x, goal.y) || (allowed && !allowed(goal))) return null
+  const traversable=(a:Point,b:Point)=>{if(!allowed)return true;const steps=Math.max(1,Math.ceil(distance(a,b)/4));for(let i=1;i<=steps;i++){const t=i/steps,p={x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t};if(!canStand(map,p.x,p.y)||!allowed(p))return false}return true}
   const first = cell(start, map.width), last = cell(goal, map.width)
-  if (first === last) return [goal]
+  if (first === last) return traversable(start,goal)?[goal]:null
   const count = map.width * map.height
   const g = Array<number>(count).fill(Infinity)
   const came = Array<number>(count).fill(-1)
@@ -36,6 +37,7 @@ export function findPath(map: WorldMap, start: Point, goal: Point): Point[] | nu
       if (nx < 0 || ny < 0 || nx >= map.width || ny >= map.height) continue
       const next = ny * map.width + nx
       if (closed[next] || !canStand(map, (nx + 0.5) * TILE, (ny + 0.5) * TILE)) continue
+      if(!traversable(current===first?start:center(current,map.width),next===last?goal:center(next,map.width)))continue
       const cost = g[current] + 1
       if (cost >= g[next]) continue
       came[next] = current
