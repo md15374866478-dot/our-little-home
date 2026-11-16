@@ -1,0 +1,35 @@
+{
+  "browser": "Chromium",
+  "viewport": [
+    1194,
+    834
+  ],
+  "deviceScaleFactor": 1,
+  "touchCapable": true,
+  "checks": [
+    "Mashuo bends, reaches, pets and recovers",
+    "Four-direction held walk, foreground hands, safe ground collision restoration",
+    "Mendu petting and carrying while following",
+    "Bite, mouth-attached return and grounded ball",
+    "Kennel sleep, independent wake after people enter, jump, burrow masks and three sleep layers",
+    "Complete ordered wake with all controls, masks and collisions restored",
+    "Movement cancels contact; trio entry cancellation settles all actors",
+    "Yard fetch and all three return through normal entrance without a failed-route teleport",
+    "Existing hand-holding, hugging and sofa seating remain playable"
+  ],
+  "errors": [],
+  "retina": {
+    "viewport": [
+      1194,
+      834
+    ],
+    "deviceScaleFactor": 2,
+    "backingWidth": 2300,
+    "cssWidth": 1150,
+    "physicalZoom": 3,
+    "touchMovement": true,
+    "pageScrolled": false,
+    "resizeSleepPreserved": true
+  },
+  "ipadSafari": "Pending real device verification"
+}

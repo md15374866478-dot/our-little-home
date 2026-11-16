@@ -1,3 +1,4 @@
+import { trioAllowed } from '../game/access'
 import type { PetAction } from '../game/petBehavior'
 import { useEffect, useRef, useState } from 'react'
 import type Phaser from 'phaser'
@@ -9,8 +10,8 @@ import type { InteractionAction } from '../game/behavior'
 
 const petActions: {id: PetAction; label:string}[] = [
   {id:'follow',label:'跟随马硕'},{id:'follow-mendu',label:'跟随门都'},
-  {id:'pet',label:'抚摸 Lucky'},{id:'carry',label:'抱起 Lucky'},{id:'release',label:'放下 Lucky'},
-  {id:'ball',label:'玩球'},{id:'feed',label:'喂食'},{id:'sleep',label:'回狗窝睡觉'},{id:'free',label:'自由活动'},
+  {id:'pet',label:'马硕抚摸 Lucky'},{id:'pet-mendu',label:'门都抚摸 Lucky'},{id:'carry',label:'马硕抱起 Lucky'},{id:'carry-mendu',label:'门都抱起 Lucky'},{id:'release',label:'放下 Lucky'},
+  {id:'ball',label:'玩球'},{id:'feed',label:'喂食'},{id:'sleep',label:'回狗窝睡觉'},{id:'wake',label:'叫醒 Lucky'},{id:'free',label:'自由活动'},
 ]
 const actions: { id: InteractionAction; label: string; icon: string }[] = [
   { id: 'talk', label: '对话', icon: '✦' },
@@ -106,7 +107,7 @@ export function GameScreen({ onLeave }: { onLeave: () => void }) {
       {petMenuOpen && <div className="interaction-menu pet-menu" role="menu" aria-label="与 Lucky 互动"><div className="interaction-title"><span>Lucky · 活泼黏人</span><button aria-label="关闭宠物菜单" onClick={()=>{setPetMenuOpen(false);sceneRef.current?.setInteractionMenuOpen(false)}}>×</button></div><div className="interaction-options">{petActions.map(action=><button key={action.id} role="menuitem" onClick={()=>{setPetMenuOpen(false);sceneRef.current?.setInteractionMenuOpen(false);sceneRef.current?.requestPetInteraction(action.id)}}>{action.label}</button>)}</div></div>}
       {menuOpen && <div className="interaction-menu" id="interaction-menu" role="menu" aria-label="与门都互动">
         <div className="interaction-title"><span>✦ 与门都一起</span><button onClick={toggleMenu} aria-label="关闭互动菜单">×</button></div>
-        <div className="interaction-options">{actions.map(action => <button key={action.id} role="menuitem" onClick={() => chooseAction(action.id)}><span>{action.icon}</span>{action.label}</button>)}</div>
+        <div className="interaction-options"><button role="menuitem" disabled={!trioAllowed} title={!trioAllowed?'仅授权私有试玩开放':undefined} onClick={()=>chooseAction('trio-sleep')}>☾ 我们三个一起睡觉</button><button role="menuitem" disabled={!trioAllowed} onClick={()=>chooseAction('trio-wake')}>☀ 三个一起起床</button>{actions.map(action => <button key={action.id} role="menuitem" onClick={() => chooseAction(action.id)}><span>{action.icon}</span>{action.label}</button>)}</div>
       </div>}
       <div className="touch-pad" aria-label="触控方向键">
         <TouchButton direction="up" label="↑" />

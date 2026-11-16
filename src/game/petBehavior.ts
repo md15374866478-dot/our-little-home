@@ -1,4 +1,4 @@
-export type PetAction = 'free' | 'follow' | 'follow-mendu' | 'pet' | 'carry' | 'release' | 'ball' | 'feed' | 'sleep'
+export type PetAction = 'free' | 'follow' | 'follow-mendu' | 'pet' | 'carry' | 'release' | 'ball' | 'feed' | 'sleep' | 'wake' | 'fetch' | 'carry-mendu' | 'pet-mendu'
 export type PetState = 'IDLE' | 'WANDER' | 'FOLLOWING' | 'APPROACHING' | 'PETTED' | 'CARRIED' | 'FETCHING' | 'RETURNING' | 'EATING' | 'GOING_HOME' | 'SLEEPING'
 /** Player commands supersede autonomous work; stale completions cannot win. */
 export class PetBehavior {

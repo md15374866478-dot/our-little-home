@@ -12,6 +12,7 @@ export class LuckyController {
   private shadow: Phaser.GameObjects.Ellipse
   private label: Phaser.GameObjects.Text
   private bed: Phaser.GameObjects.Image
+  private cushion: Phaser.GameObjects.Image
   private bedFront: Phaser.GameObjects.Image
   private ball: Phaser.GameObjects.Arc
   private bowl: Phaser.GameObjects.Graphics
@@ -29,6 +30,20 @@ export class LuckyController {
   private enteringBed = false
   private paused = false
   private yieldDone?: (ok: boolean) => void
+  private external=false
+  private noGroundCollision=false
+  private routeDone?: (ok:boolean)=>void
+  private actionHandler?: (action:PetAction)=>void
+  setActionHandler(handler:(action:PetAction)=>void){this.actionHandler=handler}
+  get direction(){return this.facing}
+  get map(){return this.world}
+  get location(){return this.kind}
+  get controlled(){return this.external}
+  setAirborne(value:boolean){this.noGroundCollision=value;this.shadow.setVisible(!value)}
+  setExternal(value:boolean){this.stopRoute();this.external=value;this.noGroundCollision=false;this.throwTween?.stop();this.ball.setVisible(false);this.bowl.setVisible(false);this.heart.setVisible(false)}
+  stopRoute(){this.path=[];this.goal=undefined;this.routeDone?.(false);this.routeDone=undefined}
+  navigateTo(goal:Point,run=false):Promise<boolean>{this.stopRoute();this.machine.state=run?'FETCHING':'GOING_HOME';return new Promise(resolve=>{this.routeDone=resolve;if(!this.navigate(goal,'approach')){this.routeDone=undefined;resolve(false)}})}
+  groundIdle(){this.setExternal(false);this.legacyRequest('free')}
   private noticeDue = 0
   private throwTween?: Phaser.Tweens.Tween
   private heart: Phaser.GameObjects.Text
@@ -39,7 +54,8 @@ export class LuckyController {
     this.sprite.on('pointerdown', () => onMenu())
     this.shadow = scene.add.ellipse(this.sprite.x,this.sprite.y-2,19,5,0x40352b,.22).setDepth(9)
     this.label = scene.add.text(0,0,'Lucky',{fontFamily:'monospace',fontSize:'8px',color:'#fff4db',backgroundColor:'#785d40',padding:{x:2,y:1}}).setOrigin(.5,1).setDepth(20)
-    this.bed = scene.add.image(0,0,'lucky-bed').setDisplaySize(46,30).setOrigin(.5,.5).setDepth(1)
+    this.bed = scene.add.image(0,0,'kennel-back').setDisplaySize(46,30).setOrigin(.5,.5).setDepth(1)
+    this.cushion = scene.add.image(0,0,'kennel-cushion').setDisplaySize(46,30).setOrigin(.5,.5).setDepth(1.1)
     this.bedFront = scene.add.image(0,0,'lucky-bed-front').setDisplaySize(46,10).setOrigin(.5,0)
     this.ball = scene.add.circle(0,0,4,0xc95740).setStrokeStyle(1,0x813e31).setDepth(10).setVisible(false)
     this.bowl = scene.add.graphics().setDepth(9).setVisible(false)
@@ -48,15 +64,17 @@ export class LuckyController {
     luckyMotion(this.sprite,'down','idle')
   }
   private actors() { return [this.player,this.npc] }
+  get kennelPosition(){return this.home()}
   private home(): Point { return this.kind === 'home' ? {x:312,y:352} : {x:408,y:472} }
-  private placeBed() { const b=this.home();this.bed.setPosition(b.x,b.y);this.bedFront.setPosition(b.x,b.y+5).setDepth(10+(b.y+20)/1000+.003) }
+  private placeBed() { const b=this.home();this.bed.setPosition(b.x,b.y);this.cushion.setPosition(b.x,b.y);this.bedFront.setPosition(b.x,b.y+5).setDepth(10+(b.y+20)/1000+.003) }
   blocks(point: Point) {
     if(this.paused)return false
     const bed=this.home()
-    return (Math.abs(point.x-bed.x)<23&&Math.abs(point.y-bed.y)<12) || (this.machine.state!=='CARRIED'&&petDistance(point,this.sprite)<15)
+    return (Math.abs(point.x-bed.x)<23&&Math.abs(point.y-bed.y)<12) || (!this.noGroundCollision&&this.machine.state!=='CARRIED'&&petDistance(point,this.sprite)<15)
   }
   private announce(message: string) { this.onMessage(message); this.noticeDue=this.scene.time.now+4000 }
-  request(action: PetAction) {
+  request(action:PetAction){if(this.actionHandler){this.actionHandler(action);return}this.legacyRequest(action)}
+  legacyRequest(action: PetAction) {
     if (action==='carry' && this.machine.state==='CARRIED') { this.announce('Lucky 已经在马硕怀里啦。'); return }
     if (this.machine.state === 'CARRIED' && action !== 'carry') {
       if (!this.drop()) return
@@ -79,7 +97,8 @@ export class LuckyController {
   }
   makeRoom(): Promise<boolean> {
     if(this.machine.state==='SLEEPING')return Promise.resolve(true)
-    this.request('free')
+    if(this.external)return Promise.resolve(false)
+    this.legacyRequest('free')
     if(this.machine.state==='CARRIED')return Promise.resolve(false)
     const points=this.kind==='home'?[this.home(),{x:280,y:176},{x:200,y:176},{x:184,y:328}]:[{x:456,y:456},{x:280,y:456},{x:248,y:280},{x:472,y:312}]
     const target=points.find(p=>this.actors().every(a=>petDistance(p,a)>50)&&petPath(this.world,this.sprite,p,this.actors()))
@@ -102,10 +121,12 @@ export class LuckyController {
   }
   private fail(message:string) {
     this.path=[];this.goal=undefined;this.enteringBed=false;this.ball.setVisible(false);this.bowl.setVisible(false)
+    this.routeDone?.(false);this.routeDone=undefined
     this.yieldDone?.(false);this.yieldDone=undefined
     this.machine.fail(this.machine.revision);this.due=this.scene.time.now+7000;luckyPose(this.sprite,'tilt');this.announce(message)
   }
   private arrived() {
+    if(this.routeDone){this.path=[];this.goal=undefined;const done=this.routeDone;this.routeDone=undefined;done(true);return}
     this.path=[];this.goal=undefined
     if(this.routePurpose==='yield'){this.machine.state='IDLE';luckyPose(this.sprite,'sit');this.due=this.scene.time.now+12000;this.yieldDone?.(true);this.yieldDone=undefined;return}
     const state=this.machine.state
@@ -174,6 +195,7 @@ export class LuckyController {
   update(delta:number) {
     if(this.paused)return
     const now=this.scene.time.now
+    if(this.external){this.advance(delta);this.label.setVisible(false);this.label.setPosition(this.sprite.x,this.sprite.y-38);this.shadow.setPosition(this.sprite.x,this.sprite.y-2).setVisible(!this.noGroundCollision);return}
     if(this.noticeDue&&now>this.noticeDue){this.noticeDue=0;this.onMessage('')}
     if(this.machine.state==='CARRIED'){
       this.sprite.setPosition(this.player.x+12,this.player.y-10).setDepth(10+this.player.y/1000+.002)
@@ -200,7 +222,7 @@ export class LuckyController {
     this.heart.setVisible(this.machine.state==='PETTED').setPosition(this.sprite.x,this.sprite.y-42+Math.sin(now/200)*2)
     this.label.setVisible(this.machine.state!=='CARRIED').setPosition(this.sprite.x,this.sprite.y-38)
   }
-  beginSceneChange(){this.yieldDone?.(false);this.yieldDone=undefined;this.throwTween?.stop();this.paused=true;this.path=[];this.goal=undefined;this.ball.setVisible(false);this.bowl.setVisible(false)}
+  beginSceneChange(){this.stopRoute();this.yieldDone?.(false);this.yieldDone=undefined;this.throwTween?.stop();this.paused=true;this.path=[];this.goal=undefined;this.ball.setVisible(false);this.bowl.setVisible(false)}
   onMapChanged(world:WorldMap,kind:MapKind){
     const carried=this.machine.state==='CARRIED',intent=this.machine.intent
     this.world=world;this.kind=kind;this.placeBed();this.path=[];this.goal=undefined;this.enteringBed=false;this.paused=false
@@ -211,5 +233,5 @@ export class LuckyController {
     else luckyMotion(this.sprite,'down','idle')
     this.due=this.scene.time.now+5000;this.planDue=0
   }
-  dispose(){this.yieldDone?.(false);this.yieldDone=undefined;this.throwTween?.stop();this.heart.destroy();this.sprite.removeAllListeners();this.sprite.destroy();this.label.destroy();this.shadow.destroy();this.bed.destroy();this.bedFront.destroy();this.ball.destroy();this.bowl.destroy()}
+  dispose(){this.stopRoute();this.yieldDone?.(false);this.yieldDone=undefined;this.throwTween?.stop();this.heart.destroy();this.sprite.removeAllListeners();this.sprite.destroy();this.label.destroy();this.shadow.destroy();this.bed.destroy();this.cushion.destroy();this.bedFront.destroy();this.ball.destroy();this.bowl.destroy()}
 }
