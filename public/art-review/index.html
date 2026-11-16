@@ -22,13 +22,14 @@
   <header><strong>Our Little Home · Phase 3.0</strong><a href="../">返回可玩的游戏</a></header>
   <main>
     <h1>室内与双人角色美术样板</h1>
-    <p class="lead">请分别看「实际游戏截图」和「美术方向概念图」。后者用于确定细节密度与气氛，没有地图碰撞或逐帧素材，尚未接入游戏。</p>
+    <p class="lead">这是 PR #3 的独立可玩预览。新暖木色房间已接入游戏，可移动、触控、进出房门并和门都互动。下方截图来自实际浏览器运行；右侧旧概念图仅用于对照氛围。当前画面是 AI 辅助视觉样板，逐件手绘正式素材尚未完成。</p>
     <div class="pair">
-      <section><span class="tag">实际游戏 · iPad 横屏尺寸模拟</span><h2>室内可玩样板</h2><figure><img src="indoor-gameplay.png" alt="马硕与门都在室内地图中的实际游戏截图" /><figcaption>游戏内 30×24 格地图、整数镜头倍率。床为独立透明家具层；其余室内家具仍为上一阶段临时稿。</figcaption></figure></section>
-      <section><span class="tag">概念方向 · 非游戏素材</span><h2>目标细节与氛围</h2><figure><a href="indoor-direction.png"><img src="indoor-direction.png" alt="温暖木色和鼠尾草绿的原创室内美术方向概念图" /></a><figcaption>原创 1402×1122 概念画。未做 16×16 网格对齐，不可直接缩小或裁切后用于 Phaser。</figcaption></figure></section>
+      <section><span class="tag">实际游戏 · iPad 横屏尺寸模拟</span><h2>室内可玩样板</h2><figure><img src="indoor-gameplay.png" alt="马硕与门都在详细室内地图中的实际游戏截图" /><figcaption>30×24 格房间、整数镜头倍率。详细画面、床和沙发前景、家具碰撞已在 Phaser 中运行。</figcaption></figure></section>
+      <section><span class="tag">早期概念 · 非游戏素材</span><h2>目标细节与氛围</h2><figure><a href="indoor-direction.png"><img src="indoor-direction.png" alt="温暖木色和鼠尾草绿的室内美术方向概念图" /></a><figcaption>此前的 1402×1122 概念画没有碰撞与图层。新游戏画面参考其色调重新生成，并非直接把这张概念画导入 Phaser。</figcaption></figure></section>
     </div>
+    <section><h2>互动状态的实际画面</h2><div class="pair"><figure><a href="indoor-sitting.png"><img src="indoor-sitting.png" alt="马硕和门都一起坐在室内沙发的游戏截图" /></a><figcaption>双人坐沙发：先寻路到沙发外，再进入坐姿，前缘遮挡腿部。</figcaption></figure><figure><a href="indoor-sleeping.png"><img src="indoor-sleeping.png" alt="马硕和门都一起躺在床上的游戏截图" /></a><figcaption>双人睡觉：床边锚点、躺卧位置与被面前景。睡眠动作目前仍是临时帧。</figcaption></figure></div></section>
     <section><h2>双人默认服装四方向图集</h2><p>每张 256×192 透明 PNG；单帧 32×48。前 16 帧依次为向下、向左、向右、向上，各方向四帧。后 16 帧为临时互动姿态。点击图集可打开原始 PNG。</p><div class="pair"><figure><a href="mashuo-atlas.png"><img class="atlas" src="mashuo-atlas.png" alt="马硕四方向行走和临时互动图集" /></a><figcaption>马硕 · 长直发、深色格纹裙、白领、黑靴。当前是原创可玩草稿。</figcaption></figure><figure><a href="mendu-atlas.png"><img class="atlas" src="mendu-atlas.png" alt="门都四方向行走和临时互动图集" /></a><figcaption>门都 · 蓬松黑发、深色卫衣。当前是原创可玩草稿。</figcaption></figure></div></section>
-    <section><h2>本轮范围</h2><table><tr><th>已接入</th><th>仍需制作</th></tr><tr><td>独立床图与遮挡、双人默认四向站立和行走、双服装资源接口</td><td>照片级人物精修、正式互动动画、第二套服装、其余家具与庭院逐件重制</td></tr></table><p class="warning">此页供美术品质验收。当前角色和床图仍未达到上方概念画的精修水平；正式素材需要按游戏网格重新绘制，不能以概念画替代。</p></section>
+    <section><h2>本轮范围</h2><table><tr><th>已接入</th><th>仍需制作</th></tr><tr><td>480×384 详细室内底图、床和沙发遮挡裁片、对应的家具碰撞与坐睡锚点、双人默认四向行走和临时互动帧</td><td>按真人照片精修角色、正式同步互动帧、第二套服装、可独立替换的透明家具图块、庭院重制</td></tr></table><p class="warning">详细房间是 AI 辅助生成、离线缩至游戏像素的可玩视觉样板；家具目前主要绘在同一张底图上，不能冒充逐件手绘正式素材。角色仍是程序绘制的临时稿。实际 iPad Safari 操作需要在设备上验收。</p></section>
   </main>
 </body>
 </html>

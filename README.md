@@ -1,6 +1,6 @@
 # Our Little Home
 
-**A little world, just for us.** 温暖的双人像素生活世界。玩家是马硕，门都是可自主活动的 NPC。阶段 3.0 开发分支加入可替换的室内床样板和双服装资源接口；角色与环境美术仍待正式精修。
+**A little world, just for us.** 温暖的双人像素生活世界。玩家是马硕，门都是可自主活动的 NPC。阶段 3.0 开发分支接入了可游玩的暖木色室内详细视觉样板，并保留双服装资源接口；角色与环境美术仍待正式精修。
 
 ## 本地运行
 
@@ -25,11 +25,11 @@ npm run build
 
 生产静态文件在 `dist/`。`.github/workflows/ci.yml` 在以 `main` 为目标的 PR 上运行测试与构建；`.github/workflows/pages.yml` 仅在推送到 `main` 或手动触发时部署 GitHub Pages。开发分支不会覆盖线上版本。站点使用相对资源路径以支持仓库子路径。
 
-像素 PNG 已提交，运行游戏不需要 Python。若要重新绘制当前临时素材，可安装 Pillow 并运行 `python3 scripts/draw_characters.py` 与 `python3 scripts/draw_maps.py`，再执行测试。请先阅读 [美术规范](docs/ART_SPEC.md)：脚本生成的是项目原创的可玩临时稿，尚未达到参考图的最终画质，也没有使用参考图中的原始像素。
+像素 PNG 已提交，运行游戏不需要 Python。若要重新生成角色与原有庭院临时素材，可安装 Pillow 并运行 `python3 scripts/draw_characters.py` 与 `python3 scripts/draw_maps.py`。现行室内详细样板独立由 `python3 scripts/prepare_indoor_detailed.py` 导出，不会被 `draw_maps.py` 替换。请先阅读 [美术规范](docs/ART_SPEC.md)：生成脚本产物仍需美术精修。
 
-阶段 3.0 的[室内样板验收清单](docs/ART_REVIEW.md)列出独立床素材、双人图集、尺寸、状态和仍需外部美术制作的资源。重新生成图集或地图后，运行 `python3 scripts/validate_art.py` 检查帧边界、透明度与室内图层合成；预览用角色图集位于 `public/art-review/`，更新角色原图后需要同步这两份展示副本。
+阶段 3.0 的[室内样板验收清单](docs/ART_REVIEW.md)列出实际游戏底图、遮挡裁片、双人图集、尺寸和仍需外部美术制作的资源。重新生成图集或地图后，运行 `python3 scripts/validate_art.py` 检查帧边界、透明度与室内图层；预览用角色图集位于 `public/art-review/`，更新角色原图后需要同步这两份展示副本。
 
-本地启动后可打开 `/art-review/index.html` 比较实际游戏截图与美术方向概念图；网页游戏仍从首页的「进入小屋」打开。
+本地启动后可打开 `/art-review/index.html` 查看实际游戏截图、坐下和睡觉状态、图集及美术方向概念图；网页游戏仍从首页的「进入小屋」打开。
 
 ## 结构
 
@@ -39,7 +39,7 @@ npm run build
 | `src/components/GameScreen.tsx`、`src/style.css` | 游戏 HUD、互动菜单和触控布局 |
 | `src/game/HomeScene.ts`、`src/game/createGame.ts` | Phaser 场景、玩家控制、镜头和场景切换 |
 | `src/game/maps.ts`、`src/game/collision.ts` | 原有 16×16 地图碰撞格与共享脚部碰撞 |
-| `src/game/artCatalog.ts` | 室内样板图层、家具碰撞足迹、四季庭院资源清单 |
+| `src/game/artCatalog.ts`、`art-source/`、`scripts/prepare_indoor_detailed.py` | 室内样板图层、家具碰撞足迹、美术源图及可复现导出流程 |
 | `src/game/pathfinding.ts`、`src/game/routeFollower.ts` | 四方向 A* 寻路和可取消的移动执行 |
 | `src/game/anchors.ts`、`src/game/interactionPositions.ts` | 家具旁活动锚点、双人站位与狭窄通道队形 |
 | `src/game/behavior.ts`、`src/game/CompanionController.ts` | NPC 状态、意图与双人互动协调 |
@@ -52,7 +52,7 @@ npm run build
 
 ## 实现说明
 
-- 庭院为 44×34 格，室内为 30×24 格；第一阶段地图和家具坐标未改动；地图从运行时几何绘制改为小尺寸 PNG 底图与独立遮挡层。
+- 庭院为 44×34 格，室内为 30×24 格；室内床、沙发等碰撞足迹为匹配新样板画面作了局部调整，家具功能与房门位置保留。地图使用小尺寸 PNG 底图与遮挡层。
 - 玩家和 NPC 共用 `canStand` 脚部碰撞规则。A* 只规划可站立格；寻路失败或超时会取消动作，NPC 不会用瞬移掩盖普通寻路失败。
 - NPC 在纪念树、长椅、花圃、书架、窗边、沙发、床边等锚点间活动，并在每处停留约 11–18 秒。夜晚在室内更倾向床边休息。跟随和牵手在场景切换后保留意图。
 - 双人坐下或睡觉时，先分别走到家具外的可行走锚点，再播放短暂进入动画。起身或起床时返回锚点。牵手优先并排，狭窄处改为前后队形。

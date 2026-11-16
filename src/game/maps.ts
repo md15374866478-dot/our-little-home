@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import type { Environment } from './environment'
 import { TILE } from './constants'
-import { allMapLayers, homeFallbackLayers, homeFurniture, homeSampleLayers, yardLayers } from './artCatalog'
+import { allMapLayers, homeDetailedLayers, homeFallbackLayers, homeFurniture, homeSampleLayers, yardLayers } from './artCatalog'
 
 export { TILE }
 export type MapKind = 'yard' | 'home'
@@ -50,7 +50,8 @@ export function createMap(scene: Phaser.Scene, kind: MapKind, env: Environment) 
   const map = createCollisionMap(kind)
   const ready = (key: string) => !scene.textures || scene.textures.exists(key)
   const definitions = kind === 'home'
-    ? (homeSampleLayers.every(layer => ready(layer.key)) ? homeSampleLayers : homeFallbackLayers)
+    ? (homeDetailedLayers.every(layer => ready(layer.key)) ? homeDetailedLayers :
+      homeSampleLayers.every(layer => ready(layer.key)) ? homeSampleLayers : homeFallbackLayers)
     : yardLayers[env.season]
   const layers = definitions.map(layer => scene.add.image(layer.x, layer.y, layer.key).setOrigin(0).setDepth(layer.depth))
   return { layers, map }

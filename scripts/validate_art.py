@@ -43,4 +43,15 @@ assert ImageChops.difference(other, front).getbbox() is None, 'front occlusion c
 for season in ('spring', 'summer', 'autumn', 'winter'):
     yard = rgba(MAPS / f'yard-{season}.png', (704, 544))
     assert yard.getchannel('A').getextrema() == (255, 255), f'{season}: holes in yard base'
-print('indoor layer composition and four seasonal yard bases: valid')
+detailed = rgba(MAPS / 'home-detailed.png', (480, 384))
+assert detailed.getchannel('A').getextrema() == (255, 255), 'detailed room has transparent holes'
+source = Image.open(ROOT / 'art-source' / 'indoor-generated-source.png').convert('RGB')
+assert detailed.convert('RGB').tobytes() == source.resize((480, 384), Image.Resampling.NEAREST).tobytes(), 'detailed room is not a 1:1 prepared source'
+for name, bounds in {
+    'home-detailed-blanket-front.png': (43, 101, 150, 132),
+    'home-detailed-bed-front.png': (31, 127, 164, 152),
+    'home-detailed-sofa-front.png': (41, 257, 178, 299),
+}.items():
+    crop = rgba(MAPS / name, (bounds[2]-bounds[0], bounds[3]-bounds[1]))
+    assert ImageChops.difference(crop, detailed.crop(bounds)).getbbox() is None, f'{name}: crop mismatch'
+print('indoor layer composition, detailed candidate, and four seasonal yard bases: valid')

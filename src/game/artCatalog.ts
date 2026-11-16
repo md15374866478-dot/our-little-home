@@ -5,6 +5,10 @@ import homeBaseSample from '../assets/maps/home-base-sample.png'
 import homeBedSample from '../assets/maps/home-bed-sample.png'
 import homeBedFrontSample from '../assets/maps/home-bed-front-sample.png'
 import homeOtherFrontSample from '../assets/maps/home-other-front-sample.png'
+import homeDetailed from '../assets/maps/home-detailed.png'
+import homeDetailedBlanket from '../assets/maps/home-detailed-blanket-front.png'
+import homeDetailedBedFront from '../assets/maps/home-detailed-bed-front.png'
+import homeDetailedSofaFront from '../assets/maps/home-detailed-sofa-front.png'
 import springArt from '../assets/maps/yard-spring.png'
 import springTree from '../assets/maps/yard-spring-tree-front.png'
 import springBench from '../assets/maps/yard-spring-bench-front.png'
@@ -33,13 +37,24 @@ export interface ArtLayer {
 
 /** A sample furniture layer can be replaced without moving the interaction anchors. */
 export const homeFurniture: ReadonlyArray<{ id: string; footprint: TileFootprint; artStatus: ArtLayer['status'] }> = [
-  { id: 'bed', footprint: { x: 2, y: 2, width: 8, height: 7 }, artStatus: 'review-sample' },
-  { id: 'bookshelf', footprint: { x: 11, y: 2, width: 4, height: 3 }, artStatus: 'provisional' },
-  { id: 'wardrobe', footprint: { x: 21, y: 2, width: 7, height: 4 }, artStatus: 'provisional' },
-  { id: 'sofa', footprint: { x: 3, y: 14, width: 8, height: 4 }, artStatus: 'provisional' },
-  { id: 'coffee-table', footprint: { x: 14, y: 13, width: 3, height: 2 }, artStatus: 'provisional' },
-  { id: 'desk', footprint: { x: 22, y: 13, width: 6, height: 5 }, artStatus: 'provisional' },
-  { id: 'plant', footprint: { x: 22, y: 19, width: 2, height: 2 }, artStatus: 'provisional' },
+  { id: 'bed', footprint: { x: 2, y: 2, width: 8, height: 8 }, artStatus: 'review-sample' },
+  { id: 'bookshelf', footprint: { x: 10, y: 2, width: 6, height: 4 }, artStatus: 'review-sample' },
+  { id: 'wardrobe', footprint: { x: 20, y: 2, width: 9, height: 5 }, artStatus: 'review-sample' },
+  { id: 'sofa', footprint: { x: 2, y: 14, width: 10, height: 5 }, artStatus: 'review-sample' },
+  { id: 'coffee-table', footprint: { x: 13, y: 13, width: 5, height: 3 }, artStatus: 'review-sample' },
+  { id: 'desk', footprint: { x: 21, y: 13, width: 8, height: 6 }, artStatus: 'review-sample' },
+  { id: 'plant', footprint: { x: 21, y: 19, width: 3, height: 3 }, artStatus: 'review-sample' },
+  { id: 'left-plant', footprint: { x: 1, y: 17, width: 3, height: 4 }, artStatus: 'review-sample' },
+  { id: 'left-lamp', footprint: { x: 2, y: 20, width: 2, height: 3 }, artStatus: 'review-sample' },
+  { id: 'right-lamp', footprint: { x: 25, y: 20, width: 3, height: 3 }, artStatus: 'review-sample' },
+]
+
+/** Original AI-assisted art draft, reduced offline to exactly one game pixel per pixel. */
+export const homeDetailedLayers: ReadonlyArray<ArtLayer> = [
+  { id: 'room-detailed', key: 'home-detailed', url: homeDetailed, x: 0, y: 0, pixelWidth: 480, pixelHeight: 384, depth: 0, status: 'review-sample' },
+  { id: 'blanket-front', key: 'home-detailed-blanket', url: homeDetailedBlanket, x: 43, y: 101, pixelWidth: 107, pixelHeight: 31, depth: 10.132, status: 'review-sample' },
+  { id: 'bed-front', key: 'home-detailed-bed-front', url: homeDetailedBedFront, x: 31, y: 127, pixelWidth: 133, pixelHeight: 25, depth: 10.152, status: 'review-sample' },
+  { id: 'sofa-front', key: 'home-detailed-sofa-front', url: homeDetailedSofaFront, x: 41, y: 257, pixelWidth: 137, pixelHeight: 42, depth: 10.299, status: 'review-sample' },
 ]
 
 export const homeSampleLayers: ReadonlyArray<ArtLayer> = [
@@ -75,4 +90,4 @@ export const yardLayers: Record<Season, ReadonlyArray<ArtLayer>> = {
   autumn: yardLayerSet('autumn'), winter: yardLayerSet('winter'),
 }
 
-export const allMapLayers = [...homeSampleLayers, ...homeFallbackLayers, ...Object.values(yardLayers).flat()]
+export const allMapLayers = [...homeDetailedLayers, ...homeSampleLayers, ...homeFallbackLayers, ...Object.values(yardLayers).flat()]

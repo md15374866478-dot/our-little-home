@@ -34,7 +34,16 @@ describe('replaceable character and map art', () => {
     expect(bed.status).toBe('review-sample')
     expect(pngHeader('maps/home-bed-sample.png')).toEqual({ width: bed.pixelWidth, height: bed.pixelHeight, colorType: 6 })
     expect({ x: bed.x, y: bed.y }).toEqual({ x: 30, y: 33 })
-    expect(homeFurniture.find(item => item.id === 'bed')?.footprint).toEqual({ x: 2, y: 2, width: 8, height: 7 })
+    expect(homeFurniture.find(item => item.id === 'bed')?.footprint).toEqual({ x: 2, y: 2, width: 8, height: 8 })
+  })
+
+  it('keeps the detailed room and its foreground crops at the declared native resolution', () => {
+    expect(pngHeader('maps/home-detailed.png')).toEqual({ width: 480, height: 384, colorType: 6 })
+    for (const [name, width, height] of [
+      ['home-detailed-blanket-front.png', 107, 31],
+      ['home-detailed-bed-front.png', 133, 25],
+      ['home-detailed-sofa-front.png', 137, 42],
+    ] as const) expect(pngHeader(`maps/${name}`)).toEqual({ width, height, colorType: 6 })
   })
 
   it('reserves an unavailable second outfit without implying it has art', () => {
@@ -53,7 +62,7 @@ describe('replaceable character and map art', () => {
     const keys: string[] = []
     const image = { setOrigin() { return this }, setDepth() { return this } }
     const scene = {
-      textures: { exists: (key: string) => !key.startsWith('home-sample') },
+      textures: { exists: (key: string) => !key.startsWith('home-sample') && !key.startsWith('home-detailed') },
       add: { image: (_x: number, _y: number, key: string) => { keys.push(key); return image } },
     } as unknown as Phaser.Scene
     createMap(scene, 'home', getEnvironment(new Date('2026-06-01T04:00:00Z')))
