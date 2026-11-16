@@ -227,6 +227,7 @@ export class CompanionController {
 
   private updateAutonomy() {
     if (this.machine.intent !== 'free' || this.machine.state === 'TRANSITIONING') return
+    if (this.machine.holdsPlayerInteraction) return
     if (this.scene.time.now < this.autonomyDue) return
     if (this.machine.state !== 'IDLE') {
       this.machine.autonomous('IDLE')
