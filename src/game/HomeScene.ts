@@ -1,3 +1,4 @@
+import { renderDensity, roomZoom } from './renderScale'
 import { preloadBed } from './BedController'
 import Phaser from 'phaser'
 import { getEnvironment, type Environment } from './environment'
@@ -109,7 +110,13 @@ export class HomeScene extends Phaser.Scene {
     const width = this.scale.width, height = this.scale.height
     const camera = this.cameras.main
     const fit = Math.min(width / (this.world.width * TILE), height / (this.world.height * TILE))
-    const zoom = this.kind === 'home' ? fit : Math.max(2, Math.ceil(Math.max(width / (this.world.width * TILE), height / (this.world.height * TILE))))
+    const query = new URLSearchParams(location.search)
+    const legacy = query.get('render') === 'legacy'
+    const density = legacy ? 1 : renderDensity(window.devicePixelRatio)
+    const sample = Number(query.get('sampleZoom'))
+    const zoom = sample > 0 && sample <= 4 ? sample * density : this.kind === 'home'
+      ? (legacy ? fit : roomZoom(width, height))
+      : Math.max(2, Math.ceil(Math.max(width / (this.world.width * TILE), height / (this.world.height * TILE)) / density)) * density
     this.cameras.main.setZoom(zoom)
     if (this.kind === 'home') {
       camera.stopFollow()
