@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import type Phaser from 'phaser'
 import { describe, expect, it, vi } from 'vitest'
@@ -16,10 +17,11 @@ function pngHeader(path: string) {
 describe('replaceable character and map art', () => {
   it('keeps both character atlases on the same transparent frame grid', () => {
     for (const role of ['mashuo', 'mendu']) {
-      expect(pngHeader(`characters/${role}.png`)).toEqual({
+      expect(pngHeader(`characters/${role}-v33.png`)).toEqual({
         width: FRAME_WIDTH * 8, height: FRAME_HEIGHT * 4, colorType: 6,
       })
-      expect(readFileSync(`public/art-review/${role}-atlas.png`)).toEqual(readFileSync(`src/assets/characters/${role}.png`))
+      const digest = (path: string) => createHash('sha256').update(readFileSync(path)).digest('hex')
+      expect(digest(`public/art-review/${role}-atlas.png`)).toBe(digest(`src/assets/characters/${role}-v33.png`))
     }
   })
 
@@ -49,7 +51,7 @@ describe('replaceable character and map art', () => {
   it('reserves an unavailable second outfit without implying it has art', () => {
     for (const role of ['mashuo', 'mendu'] as const) {
       expect(getOutfit(role, 'default')?.walkFrames).toBe(16)
-      expect(getOutfit(role, 'default')?.interactionFrames).toBe('temporary')
+      expect(getOutfit(role, 'default')?.interactionFrames).toBe('playable')
       expect(getOutfit(role, 'alternate')).toBeNull()
     }
     const setTexture = vi.fn()

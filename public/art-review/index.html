@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Our Little Home · 室内美术样板</title>
+  <title>Our Little Home · Phase 3.3 可玩角色验收</title>
   <style>
     :root{color-scheme:light;--ink:#3e302b;--cream:#f5e8ce;--paper:#fff5e1;--wood:#9a694b;--green:#71836b}
     *{box-sizing:border-box}body{margin:0;background:#e6d4b4;color:var(--ink);font-family:system-ui,"Noto Sans SC",sans-serif}
@@ -19,17 +19,18 @@
   </style>
 </head>
 <body>
-  <header><strong>Our Little Home · Phase 3.0</strong><a href="../">返回可玩的游戏</a></header>
+  <header><strong>Our Little Home · Phase 3.3</strong><a href="../?preview=home">进入真实室内游戏</a></header>
   <main>
-    <h1>室内与双人角色美术样板</h1>
-    <p class="lead">这是 PR #3 的独立可玩预览。新暖木色房间已接入游戏，可移动、触控、进出房门并和门都互动。下方截图来自实际浏览器运行；右侧旧概念图仅用于对照氛围。当前画面是 AI 辅助视觉样板，逐件手绘正式素材尚未完成。</p>
+    <h1>马硕与门都 · 实际游戏验收</h1>
+    <p class="lead">你已认可 V3.1 人物方向。两位新版角色现在直接在 Phaser 游戏中移动、互动，室内与庭院画面保持原样。<a href="../?preview=home">打开室内可玩预览</a>即可用屏幕方向键移动并点「与门都互动」测试牵手、拥抱、坐下和睡觉；<a href="../">普通入口</a>仍从庭院出生。下方都是实际浏览器游戏截图。</p>
+    <section><span class="tag">历史对比 · V3.1 已通过造型方向验收</span><h2>新旧人物尺寸对比</h2><p><a href="../character-review.html">打开四方向站立／行走对比页</a>。该页保留旧人物用于比较；主游戏已换成新版 40×60 人物。</p><figure><a href="../character-review.html"><img src="character-v31-gameplay.png" alt="旧角色与 V3.1 角色同处室内的 Phaser 尺寸对比" /></a><figcaption>1194×834 触屏尺寸模拟浏览器截图；左旧右新，脚底同高。</figcaption></figure></section>
     <div class="pair">
-      <section><span class="tag">实际游戏 · iPad 横屏尺寸模拟</span><h2>室内可玩样板</h2><figure><img src="indoor-gameplay.png" alt="马硕与门都在详细室内地图中的实际游戏截图" /><figcaption>30×24 格房间、整数镜头倍率。详细画面、床和沙发前景、家具碰撞已在 Phaser 中运行。</figcaption></figure></section>
+      <section><span class="tag">实际游戏 · 1194×834 触屏尺寸模拟</span><h2>新版人物已进游戏</h2><figure><a href="../?preview=home"><img src="phase33-gameplay.png" alt="马硕和门都新版角色在实际游戏室内地图中" /></a><figcaption>30×24 格已验收房间、3 倍整数镜头倍率；人物脚部共用原有碰撞网格。</figcaption></figure></section>
       <section><span class="tag">早期概念 · 非游戏素材</span><h2>目标细节与氛围</h2><figure><a href="indoor-direction.png"><img src="indoor-direction.png" alt="温暖木色和鼠尾草绿的室内美术方向概念图" /></a><figcaption>此前的 1402×1122 概念画没有碰撞与图层。新游戏画面参考其色调重新生成，并非直接把这张概念画导入 Phaser。</figcaption></figure></section>
     </div>
-    <section><h2>互动状态的实际画面</h2><div class="pair"><figure><a href="indoor-sitting.png"><img src="indoor-sitting.png" alt="马硕和门都一起坐在室内沙发的游戏截图" /></a><figcaption>双人坐沙发：先寻路到沙发外，再进入坐姿，前缘遮挡腿部。</figcaption></figure><figure><a href="indoor-sleeping.png"><img src="indoor-sleeping.png" alt="马硕和门都一起躺在床上的游戏截图" /></a><figcaption>双人睡觉：床边锚点、躺卧位置与被面前景。睡眠动作目前仍是临时帧。</figcaption></figure></div></section>
-    <section><h2>双人默认服装四方向图集</h2><p>每张 256×192 透明 PNG；单帧 32×48。前 16 帧依次为向下、向左、向右、向上，各方向四帧。后 16 帧为临时互动姿态。点击图集可打开原始 PNG。</p><div class="pair"><figure><a href="mashuo-atlas.png"><img class="atlas" src="mashuo-atlas.png" alt="马硕四方向行走和临时互动图集" /></a><figcaption>马硕 · 长直发、深色格纹裙、白领、黑靴。当前是原创可玩草稿。</figcaption></figure><figure><a href="mendu-atlas.png"><img class="atlas" src="mendu-atlas.png" alt="门都四方向行走和临时互动图集" /></a><figcaption>门都 · 蓬松黑发、深色卫衣。当前是原创可玩草稿。</figcaption></figure></div></section>
-    <section><h2>本轮范围</h2><table><tr><th>已接入</th><th>仍需制作</th></tr><tr><td>480×384 详细室内底图、床和沙发遮挡裁片、对应的家具碰撞与坐睡锚点、双人默认四向行走和临时互动帧</td><td>按真人照片精修角色、正式同步互动帧、第二套服装、可独立替换的透明家具图块、庭院重制</td></tr></table><p class="warning">详细房间是 AI 辅助生成、离线缩至游戏像素的可玩视觉样板；家具目前主要绘在同一张底图上，不能冒充逐件手绘正式素材。角色仍是程序绘制的临时稿。实际 iPad Safari 操作需要在设备上验收。</p></section>
+    <section><h2>真实游戏中的互动</h2><div class="pair"><figure><img src="phase33-hand.png" alt="马硕和门都在游戏中牵手" /><figcaption>牵手：门都靠近后与马硕并行，转向时保持同侧，狭窄处改为前后队形。</figcaption></figure><figure><img src="phase33-hug.png" alt="马硕和门都在游戏中拥抱" /><figcaption>拥抱：两人寻路到空地后播放同步循环动作，移动可结束。</figcaption></figure><figure><img src="phase33-sit.png" alt="新版马硕和门都坐在游戏沙发上" /><figcaption>室内双人坐下：先到沙发外锚点，再播放坐姿；沙发前缘遮挡腿部。</figcaption></figure><figure><img src="phase33-bench.png" alt="新版马硕和门都坐在庭院长椅上" /><figcaption>庭院双人坐下：沿用原有长椅锚点和前景遮挡。</figcaption></figure><figure><img src="phase33-sleep.png" alt="新版马硕和门都在游戏床上睡觉" /><figcaption>睡觉：从床边进入双人躺卧位置，两个睡眠帧循环，起床后返回床边。</figcaption></figure></div></section>
+    <section><h2>双人默认服装四方向与互动图集</h2><p>每张 320×240 透明 PNG，单帧 40×60，共 32 帧。前 16 帧是获认可的四方向、各四帧行走；后 16 帧为坐下、起身、牵手、拥抱、躺下、睡觉、起床的可玩动作姿态。点击图集可检查原始像素。</p><div class="pair"><figure><a href="mashuo-atlas.png"><img class="atlas" src="mashuo-atlas.png" alt="马硕四方向行走与互动透明图集" /></a><figcaption>马硕 · 长直发、深色格纹裙、白领、黑靴。</figcaption></figure><figure><a href="mendu-atlas.png"><img class="atlas" src="mendu-atlas.png" alt="门都四方向行走与互动透明图集" /></a><figcaption>门都 · 蓬松黑发、深色连帽卫衣。</figcaption></figure></div></section>
+    <section><h2>完成与限制</h2><table><tr><th>已在游戏中运行</th><th>仍需美术制作或设备验收</th></tr><tr><td>新版双人四向站立／行走、牵手、拥抱、坐下／起身、睡觉／起床；原有 NPC 行为、寻路、碰撞、家具遮挡和场景切换</td><td>第二套服装、按真人照片逐帧精修的动作、真实 iPad Safari 横屏与持续触控验收</td></tr></table><p class="warning">动作图集由原创 AI 辅助源图离线整理，当前是可玩的正式方向版本，尚非人工逐帧精修的最终人像。已验收的室内、庭院素材本轮没有重绘。</p></section>
   </main>
 </body>
 </html>

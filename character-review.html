@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#25372e" />
+    <title>Our Little Home · V3.1 新旧角色历史对比</title>
+  </head>
+  <body>
+    <div id="root">
+      <header><span>✦ Our Little Home</span><a href="./?preview=home">进入新版室内游戏</a></header>
+      <main>
+        <h1>V3.1 新旧角色历史对比</h1>
+        <p class="lead">两人的 V3.1 四方向角色已接入真实游戏。此页仍在同一张 Phaser 室内地图中并排展示旧版（左）与新版（右），脚底处于相同的世界坐标高度；<a href="./?preview=home">进入可玩游戏</a>可测试新版人物与全部双人互动。</p>
+        <section class="stage-wrap">
+          <div id="review-stage" aria-label="旧版与 V3.1 角色在室内场景中的实时尺寸对比"></div>
+          <div class="controls" aria-label="行走预览控制">
+            <button type="button" data-direction="down" aria-pressed="true">正面 ↓</button>
+            <button type="button" data-direction="left" aria-pressed="false">左侧 ←</button>
+            <button type="button" data-direction="right" aria-pressed="false">右侧 →</button>
+            <button type="button" data-direction="up" aria-pressed="false">背面 ↑</button>
+            <button type="button" id="motion-toggle" aria-pressed="true">行走中 · 点击暂停</button>
+          </div>
+          <p class="caption">四向各四帧真实行走；暂停时显示该方向站立帧。画面使用整数镜头缩放与最近邻采样，没有拉伸人物。此页的人物原地播放，互动请在真实游戏中体验。</p>
+        </section>
+        <section>
+          <h2>透明 PNG 图集</h2>
+          <p>每张图集 320×120：单帧 40×60，8 列×2 行，共 16 帧。按正面、左侧、右侧、背面排列，每方向四帧。点击可查看原始文件。</p>
+          <div class="atlases"><figure><a id="mashuo-link"><img id="mashuo-atlas" alt="马硕 V3.1 四方向行走透明 PNG 图集" /></a><figcaption>马硕 · 长直发、白色小花、白领格纹裙、黑靴</figcaption></figure><figure><a id="mendu-link"><img id="mendu-atlas" alt="门都 V3.1 四方向行走透明 PNG 图集" /></a><figcaption>门都 · 蓬松层次短发、深色连帽卫衣、休闲裤</figcaption></figure></div>
+        </section>
+        <section class="caveat"><h2>当前制作边界</h2><p>V3.1 行走图集由设定图启发的原创 AI 辅助源姿势整理而成，没有从附图随意裁切角色。阶段 3.3 在真实游戏中沿用这 16 帧，并加入 16 帧 AI 辅助的可玩互动姿态。透明边缘和脚底位置已检查；动作仍待真人照片逐帧修稿。<a href="./art-review/">查看游戏互动截图与新版完整图集</a>。</p></section>
+      </main>
+    </div>
+    <script type="module" src="/src/review/charactersV31.ts"></script>
+  </body>
+</html>

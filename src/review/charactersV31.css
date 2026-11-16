@@ -1,0 +1,24 @@
+:root{color-scheme:light;background:#ead8b9;color:#332923;font-family:system-ui,"Noto Sans SC",sans-serif}
+*{box-sizing:border-box}
+body{margin:0}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#273b33;color:#fff2d9;padding:12px clamp(16px,3vw,38px);font-family:Georgia,serif;font-weight:bold}
+header a{color:#fff2d9;text-decoration:none;border:2px solid #ba9b6d;padding:8px 12px;font-family:system-ui,sans-serif;font-size:14px}
+main{max-width:1320px;margin:auto;padding:18px clamp(14px,3vw,36px) 50px}
+h1{font:700 clamp(25px,3vw,38px) Georgia,serif;margin:0 0 8px}
+h2{margin:0 0 10px;font-size:22px}
+p{line-height:1.6;margin:0 0 12px}
+.lead{max-width:1020px}
+section{background:#fff5e5;border:3px solid #8f6a49;padding:16px;margin-top:18px}
+.stage-wrap{padding:10px}
+#review-stage{width:100%;height:min(58vh,580px);min-height:360px;background:#25372e;touch-action:none;overflow:hidden}
+#review-stage canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.controls{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-top:12px}
+.controls button{min-height:46px;min-width:82px;padding:8px 13px;border:2px solid #77523c;background:#f6e1ba;color:#372c25;font-size:15px;font-weight:700;touch-action:manipulation}
+.controls button[aria-pressed="true"]{background:#647858;color:#fff8e9;border-color:#344837}
+.caption{font-size:13px;color:#68564a;margin:12px 4px 0}
+.atlases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+figure{margin:0}figure a{display:block;background:repeating-conic-gradient(#e1d6c3 0 25%,#f5ebd8 0 50%) 0 0/20px 20px;border:2px solid #aa8c67;text-align:center}
+figure img{display:block;width:min(100%,800px);height:auto;image-rendering:pixelated;image-rendering:crisp-edges;margin:auto}
+figcaption{font-size:13px;margin-top:8px}
+.caveat{border-color:#b17d63;background:#fff0df}
+@media(max-width:760px){.atlases{grid-template-columns:1fr}.controls button{flex:1 1 110px}#review-stage{height:52vh;min-height:280px}}

@@ -1,0 +1,216 @@
+[
+  {
+    "map": "home",
+    "version": "before",
+    "dpr": 2,
+    "canvas": [
+      1150,
+      734
+    ],
+    "css": [
+      1150,
+      734
+    ],
+    "zoom": 1.5,
+    "cssZoom": 1.5,
+    "playerSize": [
+      40,
+      60
+    ],
+    "layers": [
+      {
+        "key": "home-detailed",
+        "native": [
+          480,
+          384
+        ],
+        "world": [
+          480,
+          384
+        ]
+      },
+      {
+        "key": "home-detailed-sofa-front",
+        "native": [
+          137,
+          42
+        ],
+        "world": [
+          137,
+          42
+        ]
+      }
+    ],
+    "scroll": [
+      -335,
+      -175
+    ],
+    "errors": []
+  },
+  {
+    "map": "home",
+    "version": "after",
+    "dpr": 2,
+    "canvas": [
+      2300,
+      1468
+    ],
+    "css": [
+      1150,
+      734
+    ],
+    "zoom": 3,
+    "cssZoom": 1.5,
+    "playerSize": [
+      40,
+      60
+    ],
+    "layers": [
+      {
+        "key": "home-detailed-native",
+        "native": [
+          1402,
+          1122
+        ],
+        "world": [
+          480,
+          384
+        ]
+      },
+      {
+        "key": "home-detailed-native-sofa",
+        "native": [
+          400,
+          123
+        ],
+        "world": [
+          137,
+          42
+        ]
+      }
+    ],
+    "scroll": [
+      -910,
+      -542
+    ],
+    "errors": []
+  },
+  {
+    "map": "yard",
+    "version": "before",
+    "dpr": 2,
+    "canvas": [
+      1150,
+      734
+    ],
+    "css": [
+      1150,
+      734
+    ],
+    "zoom": 2,
+    "cssZoom": 2,
+    "playerSize": [
+      40,
+      60
+    ],
+    "layers": [
+      {
+        "key": "yard-autumn-art",
+        "native": [
+          704,
+          544
+        ],
+        "world": [
+          704,
+          544
+        ]
+      },
+      {
+        "key": "yard-autumn-tree",
+        "native": [
+          704,
+          544
+        ],
+        "world": [
+          704,
+          544
+        ]
+      },
+      {
+        "key": "yard-autumn-bench",
+        "native": [
+          704,
+          544
+        ],
+        "world": [
+          704,
+          544
+        ]
+      }
+    ],
+    "scroll": [
+      -215,
+      -6.5
+    ],
+    "errors": []
+  },
+  {
+    "map": "yard",
+    "version": "after",
+    "dpr": 2,
+    "canvas": [
+      2300,
+      1468
+    ],
+    "css": [
+      1150,
+      734
+    ],
+    "zoom": 4,
+    "cssZoom": 2,
+    "playerSize": [
+      40,
+      60
+    ],
+    "layers": [
+      {
+        "key": "yard-autumn-native",
+        "native": [
+          1427,
+          1102
+        ],
+        "world": [
+          704,
+          544
+        ]
+      },
+      {
+        "key": "yard-autumn-native-tree",
+        "native": [
+          309,
+          270
+        ],
+        "world": [
+          103,
+          90
+        ]
+      },
+      {
+        "key": "yard-autumn-native-bench",
+        "native": [
+          187,
+          14
+        ],
+        "world": [
+          92,
+          7
+        ]
+      }
+    ],
+    "scroll": [
+      -790,
+      -373.5
+    ],
+    "errors": []
+  }
+]

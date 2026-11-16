@@ -1,3 +1,8 @@
+import yardAutumnNativeTree from '../assets/maps/yard-autumn-native-tree.png'
+import yardAutumnNative from '../assets/maps/yard-autumn-native.png'
+import yardAutumnNativeBench from '../assets/maps/yard-autumn-native-bench.png'
+import homeNative from '../assets/maps/home-native.png'
+import homeNativeSofa from '../assets/maps/home-native-sofa.png'
 import type { Season } from './environment'
 import homeLegacy from '../assets/maps/home.png'
 import homeLegacyFront from '../assets/maps/home-front.png'
@@ -57,6 +62,12 @@ export const homeDetailedLayers: ReadonlyArray<ArtLayer> = [
   { id: 'sofa-front', key: 'home-detailed-sofa-front', url: homeDetailedSofaFront, x: 41, y: 257, pixelWidth: 137, pixelHeight: 42, depth: 10.299, status: 'review-sample' },
 ]
 
+/** Native source pixels map onto the same 480×384 world, independently of physics. */
+export const homeNativeLayers: ReadonlyArray<ArtLayer> = [
+  { id: 'room-native', key: 'home-detailed-native', url: homeNative, x: 0, y: 0, pixelWidth: 480, pixelHeight: 384, depth: 0, status: 'review-sample' },
+  { id: 'sofa-front', key: 'home-detailed-native-sofa', url: homeNativeSofa, x: 41, y: 257, pixelWidth: 137, pixelHeight: 42, depth: 10.299, status: 'review-sample' },
+]
+
 export const homeSampleLayers: ReadonlyArray<ArtLayer> = [
   { id: 'room-base', key: 'home-sample-base', url: homeBaseSample, x: 0, y: 0, pixelWidth: 480, pixelHeight: 384, depth: 0, status: 'review-sample' },
   { id: 'bed', key: 'home-sample-bed', url: homeBedSample, x: 30, y: 33, pixelWidth: 131, pixelHeight: 113, depth: 0.1, status: 'review-sample' },
@@ -90,4 +101,10 @@ export const yardLayers: Record<Season, ReadonlyArray<ArtLayer>> = {
   autumn: yardLayerSet('autumn'), winter: yardLayerSet('winter'),
 }
 
-export const allMapLayers = [...homeDetailedLayers, ...homeSampleLayers, ...homeFallbackLayers, ...Object.values(yardLayers).flat()]
+export const yardAutumnNativeLayers: ReadonlyArray<ArtLayer> = [
+  { id: 'yard-native-base', key: 'yard-autumn-native', url: yardAutumnNative, x: 0, y: 0, pixelWidth: 704, pixelHeight: 544, depth: 0, status: 'review-sample' },
+  { id: 'yard-native-tree', key: 'yard-autumn-native-tree', url: yardAutumnNativeTree, x: 118, y: 272, pixelWidth: 103, pixelHeight: 90, depth: 10.35, status: 'review-sample' },
+  { id: 'yard-native-bench', key: 'yard-autumn-native-bench', url: yardAutumnNativeBench, x: 498, y: 386, pixelWidth: 92, pixelHeight: 7, depth: 10.4, status: 'review-sample' },
+]
+
+export const allMapLayers = [...yardAutumnNativeLayers, ...homeNativeLayers, ...homeDetailedLayers, ...homeSampleLayers, ...homeFallbackLayers, ...Object.values(yardLayers).flat()]

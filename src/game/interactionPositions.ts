@@ -12,22 +12,29 @@ export function findHugSpot(map: WorldMap, player: Point, npc: Point): [Point, P
     const center = { x: player.x + ox * 16, y: player.y + oy * 16 }
     const a = { x: center.x - (vertical ? 0 : 10), y: center.y - (vertical ? 10 : 0) }
     const b = { x: center.x + (vertical ? 0 : 10), y: center.y + (vertical ? 10 : 0) }
-    const space = [a, b].every(point => [-8, 8].every(dx => [-8, 8].every(dy => canStand(map, point.x + dx, point.y + dy))))
+    const space = [a, b].every(point => [-14, 14].every(dx => [-8, 8].every(dy => canStand(map, point.x + dx, point.y + dy))))
     if (space && findPath(map, player, a) && findPath(map, npc, b)) return [a, b]
   }
   return null
 }
 
 /** Side-by-side when clear; behind the player when a narrow passage blocks both sides. */
-export function formationTarget(map: WorldMap, player: Point, npc: Point, facing: Direction, holding = false): Point | null {
+export function formationTarget(map: WorldMap, player: Point, npc: Point, facing: Direction, holding = false, handSide?: -1 | 1): Point | null {
   const vector = directionVector[facing]
-  const behind = { x: player.x - vector.x * (holding ? 23 : 27), y: player.y - vector.y * (holding ? 23 : 27) }
-  const side = { x: -vector.y * 20, y: vector.x * 20 }
+  const behind = { x: player.x - vector.x * (holding ? 35 : 27), y: player.y - vector.y * (holding ? 35 : 27) }
+  // Keep the same horizontal partner side when turning. A side derived from
+  // the travel vector crosses the player whenever they turn left or right.
+  const side = holding
+    ? { x: 30 * (handSide ?? (npc.x > player.x ? 1 : -1)), y: 0 }
+    : { x: -vector.y * 20, y: vector.x * 20 }
+  const roomy = (point: Point) => !holding || [-13, 13].every(offset =>
+    canStand(map, point.x + offset, point.y) && canStand(map, point.x, point.y + offset))
   const desired = holding
-    ? [{ x: player.x + side.x, y: player.y + side.y }, { x: player.x - side.x, y: player.y - side.y }, behind]
+    ? [{ x: player.x + side.x, y: player.y }, behind, { x: player.x - side.x, y: player.y }]
     : [behind, { x: player.x + side.x, y: player.y + side.y }]
   for (const candidate of desired) {
-    if (canStand(map, candidate.x, candidate.y) && findPath(map, npc, candidate)) return candidate
+    if (canStand(map, candidate.x, candidate.y) && (candidate === behind || roomy(candidate)) && findPath(map, npc, candidate)) return candidate
   }
-  return reachableNear(map, npc, behind, 2)
+  const fallback = reachableNear(map, npc, behind, 2)
+  return holding && fallback && Math.hypot(fallback.x - player.x, fallback.y - player.y) < 22 ? null : fallback
 }

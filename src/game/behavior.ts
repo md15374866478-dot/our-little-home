@@ -1,6 +1,6 @@
 export type BehaviorState = 'IDLE' | 'WANDER' | 'READING' | 'SITTING' | 'RESTING' | 'FOLLOWING' | 'HOLDING_HANDS' | 'HUGGING' | 'SLEEPING' | 'TALKING' | 'TRANSITIONING'
 export type Intent = 'free' | 'follow' | 'hand'
-export type InteractionAction = 'talk' | 'follow' | 'hand' | 'hug' | 'sit' | 'sleep' | 'free'
+export type InteractionAction = 'talk' | 'follow' | 'hand' | 'hug' | 'sit' | 'sleep' | 'free' | 'sleep-mashuo' | 'sleep-mendu' | 'wake' | 'wake-mashuo' | 'wake-mendu'
 
 /** All NPC state changes pass through this gate; stale async routes cannot commit. */
 export class BehaviorMachine {

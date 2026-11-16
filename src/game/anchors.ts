@@ -26,7 +26,7 @@ export const activityAnchors: Record<MapKind, ActivityAnchor[]> = {
 
 export interface DuoSeat { approach: [Point, Point]; pose: [Point, Point]; kind: 'sit' | 'sleep' }
 export const sofaSeat: DuoSeat = {
-  kind: 'sit', approach: [at(5.5, 19.5), at(8.5, 19.5)], pose: [at(5.5, 16.5), at(8.5, 16.5)],
+  kind: 'sit', approach: [at(5.5, 19.5), at(8.5, 19.5)], pose: [at(5.5, 17.5), at(8.5, 17.5)],
 }
 export const benchSeat: DuoSeat = {
   kind: 'sit', approach: [at(32.5, 25.5), at(35.5, 25.5)], pose: [at(32.5, 23.5), at(35.5, 23.5)],

@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import type { Environment } from './environment'
 import { TILE } from './constants'
-import { allMapLayers, homeDetailedLayers, homeFallbackLayers, homeFurniture, homeSampleLayers, yardLayers } from './artCatalog'
+import { allMapLayers, yardAutumnNativeLayers, homeNativeLayers, homeDetailedLayers, homeFallbackLayers, homeFurniture, homeSampleLayers, yardLayers } from './artCatalog'
 
 export { TILE }
 export type MapKind = 'yard' | 'home'
@@ -49,10 +49,24 @@ export function createCollisionMap(kind: MapKind): WorldMap {
 export function createMap(scene: Phaser.Scene, kind: MapKind, env: Environment) {
   const map = createCollisionMap(kind)
   const ready = (key: string) => !scene.textures || scene.textures.exists(key)
+  const native = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('sceneArt') !== 'legacy'
   const definitions = kind === 'home'
-    ? (homeDetailedLayers.every(layer => ready(layer.key)) ? homeDetailedLayers :
+    ? (native && homeNativeLayers.every(layer => ready(layer.key)) ? homeNativeLayers : homeDetailedLayers.every(layer => ready(layer.key)) ? homeDetailedLayers :
       homeSampleLayers.every(layer => ready(layer.key)) ? homeSampleLayers : homeFallbackLayers)
-    : yardLayers[env.season]
-  const layers = definitions.map(layer => scene.add.image(layer.x, layer.y, layer.key).setOrigin(0).setDepth(layer.depth))
+    : native && env.season === 'autumn' && yardAutumnNativeLayers.every(layer => ready(layer.key)) ? yardAutumnNativeLayers : yardLayers[env.season]
+  const layers = definitions.filter(layer => kind !== 'home' || !['blanket-front', 'bed-front'].includes(layer.id)).map(layer => {
+    const image = scene.add.image(layer.x, layer.y, layer.key).setOrigin(0).setDepth(layer.depth)
+    if (definitions === homeNativeLayers || definitions === yardAutumnNativeLayers) image.setDisplaySize(layer.pixelWidth, layer.pixelHeight)
+    return image
+  })
+  // The upper part of this crop contains the cushions, which belong behind
+  // seated characters. Keep only the lower sofa edge in the foreground.
+  if (kind === 'home' && (definitions === homeDetailedLayers || definitions === homeNativeLayers)) {
+    const sofa = layers.findIndex(layer => layer.texture?.key.includes('sofa'))
+    if (sofa >= 0) {
+      const image = layers[sofa], factor = definitions === homeNativeLayers ? image.height / 42 : 1
+      image.setCrop(0, Math.round(18 * factor), image.width, Math.round(24 * factor))
+    }
+  }
   return { layers, map }
 }
