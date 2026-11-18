@@ -319,7 +319,6 @@ export class CompanionController {
   }
 
   update(delta: number) {
-    this.bed.update(this.scene.time.now)
     this.route.update(delta)
     if (this.machine.intent === 'follow' || this.machine.intent === 'hand') this.updateFollowing()
     else this.updateAutonomy()

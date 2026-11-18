@@ -13,7 +13,12 @@ export class BallAttachment {
  blocks(point:Point){return this.phase==='GROUND'&&Math.hypot(point.x-this.ground.x,point.y-this.ground.y)<8}
  async toss(scope:ActionScope,token:number,from:Point,to:Point){this.phase='FLYING';this.ball.setVisible(true);this.shadow.setVisible(true);const progress={t:0};return scope.tween(token,{targets:progress,t:1,duration:550,onUpdate:()=>{this.ground={x:from.x+(to.x-from.x)*progress.t,y:from.y+(to.y-from.y)*progress.t};this.ball.setPosition(this.ground.x,this.ground.y-Math.sin(Math.PI*progress.t)*25-10*(1-progress.t));this.shadow.setPosition(this.ground.x,this.ground.y)}}).then(ok=>{if(ok){this.phase='GROUND';this.ground=to;this.ball.setPosition(to.x,to.y)}return ok})}
  attach(sprite:Phaser.GameObjects.Sprite,direction:Direction){const anchor=mouthAnchor(direction,Number(sprite.frame.name));const p=attach(sprite,anchor);this.phase='MOUTH';this.ball.setPosition(p.x,p.y).setDepth(sprite.depth+(anchor.behind?-.002:.004)).setVisible(true);this.shadow.setVisible(false)}
- async take(scope:ActionScope,token:number,sprite:Phaser.GameObjects.Sprite,direction:Direction){this.phase='FLYING';this.shadow.setVisible(false);const target=attach(sprite,{x:direction==='left'?-14:direction==='right'?14:0,y:direction==='up'?-26:-4});const ok=await scope.tween(token,{targets:this.ball,x:target.x,y:target.y,duration:320});if(ok)this.phase='MOUTH';return ok}
+ async take(scope:ActionScope,token:number,sprite:Phaser.GameObjects.Sprite,direction:Direction){this.phase='FLYING';this.shadow.setVisible(false);const target=attach(sprite,mouthAnchor(direction,0,true));const ok=await scope.tween(token,{targets:this.ball,x:target.x,y:target.y,duration:320});if(ok)this.phase='MOUTH';return ok}
+ async lowerMouth(scope:ActionScope,token:number,sprite:Phaser.GameObjects.Sprite,direction:Direction){
+  const anchor=mouthAnchor(direction,0,true)
+  const target=attach(sprite,anchor)
+  return scope.tween(token,{targets:this.ball,...target,duration:180,ease:'Sine.easeInOut'})
+ }
  async place(scope:ActionScope,token:number,point:Point){this.phase='FLYING';const ok=await scope.tween(token,{targets:this.ball,x:point.x,y:point.y,duration:320});if(ok){this.phase='GROUND';this.ground=point;this.ball.setDepth(10+point.y/1000).setVisible(true);this.shadow.setPosition(point.x,point.y).setVisible(true)}return ok}
  clear(){this.phase='ABSENT';this.ball.setVisible(false);this.shadow.setVisible(false)}
  dispose(){this.ball.destroy();this.shadow.destroy()}
