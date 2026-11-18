@@ -89,17 +89,23 @@ pack('fold-center.png', [center_frame(base, n / (FRAMES - 1)) for n in range(FRA
 # central fold follows the shoulders from the foot to that lip.
 def traveling_fold(source, offset):
     result = center_frame(source, 0)
-    for x in range(24, 78):
-        across = max(0, 1 - ((x - 50.5) / 27) ** 2)
-        for y in range(6, 58):
-            distance = (y - offset) / 8
+    for x in range(102):
+        lateral = (x - 50.5) / 19
+        if abs(lateral) >= 1:
+            continue
+        across = (1 - lateral ** 2) ** 2
+        # A rounded crest, with a continuously changing light-to-shadow slope.
+        crest = offset + 5 * lateral ** 2
+        for y in range(HEIGHT):
+            distance = (y - crest) / 11
             if abs(distance) >= 1:
                 continue
-            weight = (1 - distance ** 2) * across
-            source_y = max(0, y + round(weight * 4))
-            pixel = source.getpixel((x, source_y))
-            shade = 1 + weight * (.20 if distance < 0 else -.25)
-            result.putpixel((x, y + 12), tone(pixel, shade))
+            longitudinal = (1 - distance ** 2) ** 2
+            # Taper at the lace and mattress edge. Preserve the source weave in
+            # place, including each stitched grid line and the alpha silhouette.
+            taper = min(1, y / 8, (HEIGHT - 1 - y) / 6)
+            shade = 1 - .33 * distance * across * longitudinal * taper
+            result.putpixel((x, y + 12), tone(source.getpixel((x, y)), shade))
     return result
 
 pack('fold-travel.png', [traveling_fold(base, offset) for offset in range(6, 69, 2)])

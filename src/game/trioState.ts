@@ -1,5 +1,5 @@
-export type TrioPhase='IDLE'|'RETURN_HOME'|'PEOPLE_ENTER'|'LUCKY_APPROACH'|'JUMP'|'LAND'|'BURROW'|'SLEEP'|'LUCKY_WAKE'|'PEOPLE_WAKE'|'RECOVER'
-const phases:TrioPhase[]=['RETURN_HOME','PEOPLE_ENTER','LUCKY_APPROACH','JUMP','LAND','BURROW','SLEEP','LUCKY_WAKE','PEOPLE_WAKE','IDLE']
+export type TrioPhase='IDLE'|'RETURN_HOME'|'PEOPLE_ENTER'|'LUCKY_APPROACH'|'JUMP'|'LAND'|'WALK_BED'|'BURROW'|'SLEEP'|'LUCKY_WAKE'|'PEOPLE_WAKE'|'RECOVER'
+const phases:TrioPhase[]=['RETURN_HOME','PEOPLE_ENTER','LUCKY_APPROACH','JUMP','LAND','WALK_BED','BURROW','SLEEP','LUCKY_WAKE','PEOPLE_WAKE','IDLE']
 export class TrioState {
   phase:TrioPhase='IDLE';private revision=0
   get active(){return this.phase!=='IDLE'}
