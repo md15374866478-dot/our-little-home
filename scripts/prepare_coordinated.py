@@ -28,8 +28,13 @@ for role in ['mashuo','mendu']:
   # Forearms and palms are a distinct foreground; body/head never cover the pet.
   if i<16 and i%4==3:
    box=(1,49,15,59) if row in [0,1] else (25,49,39,59);d.rectangle(box,fill=255)
+  elif i<16 and i%4==0:
+   # During the reach only the wrist and paws overlap, not the torso.
+   if row==0:d.rectangle((12,50,28,59),fill=255)
+   elif row==1:d.rectangle((5,50,21,59),fill=255)
+   elif row==2:d.rectangle((20,50,36,59),fill=255)
   elif i>=16 or i%4 in [1,2]:
-   top=41 if i>=16 or i%4==2 else 31
+   top=41 if i>=16 or i%4==2 else (36 if row else 39)
    if row==0:d.rectangle((8,top,31,top+10),fill=255)
    elif row==1:d.rectangle((0,top,16,top+10),fill=255)
    elif row==2:d.rectangle((24,top,39,top+10),fill=255)

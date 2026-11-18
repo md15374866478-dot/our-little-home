@@ -1,11 +1,12 @@
 import type Phaser from 'phaser'
+import { carryContact, petContact } from './petContact'
 import type {Role} from './characterAssets'
 import type {Direction} from './input'
 import type {Point} from './pathfinding'
 import {canStand} from './collision'
 import {findPath} from './pathfinding'
-import {petCanStand,petDistance,petNear} from './petNavigation'
-import {directions,handAnchors,facingToward,mouthAnchor,attach} from './interactionAnchors'
+import {petCanStand,petDistance,petNear,petPath} from './petNavigation'
+import {directions,facingToward,mouthAnchor,attach} from './interactionAnchors'
 import {ActionScope} from './ActionScope'
 import {HumanPetAnimator} from './HumanPetAnimator'
 import {BallAttachment} from './BallAttachment'
@@ -63,53 +64,101 @@ export class PetActionDirector {
   if(!this.scope.valid(token))return false
   this.humans.restoreAll();this.unlock();this.lucky.setAirborne(false);return true
  }
- private async pair(token:number,role:Role){
+ private async pair(token:number,role:Role,kind:'pickup'|'pet'){
   this.phase='APPROACH';this.lock('mashuo',true);this.lock('mendu',true)
   await this.companion.request('free');if(!this.scope.valid(token))return null
   const actor=this.actors[role],other=this.actors[role==='mashuo'?'mendu':'mashuo'],dog=this.lucky.sprite
-  const preferred=facingToward(actor,dog)
-  for(const direction of [preferred,...directions.filter(d=>d!==preferred)]){
-   const h=handAnchors[direction],goal={x:dog.x-h.x,y:dog.y-h.y-28}
-   if(!canStand(this.lucky.map,goal.x,goal.y)||petDistance(goal,other)<19||!findPath(this.lucky.map,actor,goal))continue
-   const arrived=await this.companion.navigateRole(role,goal)
-   if(!this.scope.valid(token))return null
-   if(!arrived)continue
-   const canineDirection=facingToward(dog,actor);luckyMotion(dog,canineDirection,'idle')
-   return {direction,canineDirection,ground:{x:dog.x,y:dog.y}}
+  const standOptions=(position:Point)=>{
+   const preferred=facingToward(actor,position)
+   return [preferred,...directions.filter(direction=>direction!==preferred)].flatMap(direction=>{
+    const contact=kind==='pickup'?carryContact[role][direction]:petContact[role][direction]
+    const goal={x:position.x-contact.x,y:position.y-contact.y}
+    if(!canStand(this.lucky.map,goal.x,goal.y)||petDistance(goal,other)<19||!findPath(this.lucky.map,actor,goal))return []
+    return [{ direction, goal }]
+   })
+  }
+  for(let attempt=0;attempt<2;attempt++){
+   for(const {direction,goal} of standOptions(dog)){
+    const arrived=await this.companion.navigateRole(role,goal)
+    if(!this.scope.valid(token))return null
+    if(!arrived)continue
+    const canineDirection=facingToward(dog,actor)
+    luckyMotion(dog,canineDirection,'idle')
+    return {direction,canineDirection,ground:{x:dog.x,y:dog.y}}
+   }
+   if(attempt!==0)break
+   // If the other person or furniture occupies the contact spot, let Lucky
+   // take a few real steps into a clearer position before the actor reaches.
+   const space=[[28,0],[-28,0],[0,-28],[0,28],[32,-16],[-32,-16]].map(([x,y])=>({x:dog.x+x,y:dog.y+y}))
+    .find(point=>standOptions(point).length&&petPath(this.lucky.map,dog,point,Object.values(this.actors)))
+   if(!space||!await this.lucky.navigateTo(space)||!this.scope.valid(token))return null
   }
   return null
  }
  private async pickup(token:number,role:Role){
-  const pair=await this.pair(token,role)
+  const pair=await this.pair(token,role,'pickup')
   if(!pair){if(this.scope.valid(token)){this.unlock();this.lucky.groundIdle();this.phase='IDLE';this.notice('这里没有足够的抱起空间，请换个位置。')}return}
   this.holdDirection=pair.direction;this.ground=pair.ground;this.phase='BEND'
   this.humans.pose(role,pair.direction,0);luckyPose(this.lucky.sprite,'tilt')
   if(!await this.scope.wait(token,380))return
-  this.holder=role;this.pose(directions.indexOf(pair.canineDirection));this.lucky.setAirborne(true);this.phase='LIFT';this.humans.pose(role,pair.direction,1)
-  const target=this.humans.cradle(role)
-  if(!await this.scope.tween(token,{targets:this.lucky.sprite,x:target.x,y:target.y,duration:550,ease:'Sine.easeInOut'}))return
+  this.holder=role
+  this.lucky.setAirborne(true)
+  this.phase='LIFT'
+  if(!await this.carryGesture(token,role,pair.direction,pair.ground,false))return
   this.humans.carry(role,pair.direction,false);this.phase='HOLD';this.lucky.machine.state='CARRIED'
   this.lock('mashuo',false);this.lock('mendu',role==='mendu')
   if(role==='mendu')await this.companion.request('follow')
   this.notice(role==='mashuo'?'马硕把 Lucky 托在怀里了。':'门都抱着 Lucky 跟着马硕走。')
  }
+ private async carryGesture(token:number,role:Role,direction:Direction,ground:Point,lowering:boolean){
+  const dog=this.lucky.sprite,actor=this.actors[role]
+  const start={x:dog.x,y:dog.y},supported=this.humans.cradle(role),progress={t:0}
+  const end=lowering?ground:supported
+  const frame=directions.indexOf(direction)
+  const initialDirection=lowering?direction:facingToward(dog,actor)
+  const apply=()=>{
+   const amount=lowering?1-progress.t:progress.t
+   this.humans.pose(role,direction,amount<.27?0:amount<.76?1:2)
+   if(amount>.23)this.pose(frame,direction==='down')
+   else luckyMotion(dog,initialDirection,'idle')
+   dog.setPosition(start.x+(end.x-start.x)*progress.t,start.y+(end.y-start.y)*progress.t)
+  }
+  apply()
+  if(!await this.scope.tween(token,{targets:progress,t:1,duration:680,ease:'Sine.easeInOut',onUpdate:apply}))return false
+  if(lowering)this.lucky.setAirborne(false)
+  return this.scope.wait(token,lowering?120:90)
+ }
  private async releaseCarry(token:number){
   const role=this.holder!;this.lock('mashuo',true);this.lock('mendu',true)
   if(role==='mendu')await this.companion.request('free')
   if(!this.scope.valid(token))return false
-  const actor=this.actors[role],direction=this.holdDirection,h=handAnchors[direction]
-  const ground=this.nearGround({x:actor.x+h.x,y:actor.y+h.y+28})
-  if(!ground){this.phase='HOLD';this.lock('mashuo',false);this.lock('mendu',role==='mendu');this.notice('附近没有安全落脚点，走到空地后再放下。');return false}
-  this.phase='LOWER';this.lock(role,true);this.companion.stopRole(role);this.humans.pose(role,direction,1)
-  if(!await this.scope.tween(token,{targets:this.lucky.sprite,x:ground.x,y:ground.y,duration:550,ease:'Sine.easeInOut'}))return false
-  this.humans.pose(role,direction,0)
-  if(!await this.scope.wait(token,280))return false
+  const actor=this.actors[role]
+  const options=[this.holdDirection,...directions.filter(direction=>direction!==this.holdDirection)]
+  const drop=options.map(direction=>({ direction, point:attach(actor,carryContact[role][direction]) }))
+   .find(option=>this.safe(option.point))
+  if(!drop){
+   this.phase='HOLD'
+   this.lock('mashuo',false)
+   this.lock('mendu',role==='mendu')
+   if(role==='mendu')await this.companion.request('follow')
+   this.notice('先走到空地，再把 Lucky 放下。')
+   return false
+  }
+  if(drop.direction!==this.holdDirection){
+   this.holdDirection=drop.direction
+   this.humans.carry(role,drop.direction,false)
+   if(!await this.scope.wait(token,150))return false
+  }
+  const {direction,point:ground}=drop
+  this.phase='LOWER'
+  this.companion.stopRole(role)
+  if(!await this.carryGesture(token,role,direction,ground,true))return false
   this.holder=undefined;this.lucky.machine.state='IDLE';this.lucky.setAirborne(false);luckyMotion(this.lucky.sprite,facingToward(this.lucky.sprite,actor),'idle');this.humans.restore(role);this.lock(role,false)
   if(role==='mendu')await this.companion.request('free')
   return this.scope.valid(token)
  }
  private async pet(token:number,role:Role){
-  const pair=await this.pair(token,role)
+  const pair=await this.pair(token,role,'pet')
   if(!pair){if(this.scope.valid(token)){this.unlock();this.lucky.groundIdle();this.phase='IDLE';this.notice('这里伸不开手，换个空一点的位置再摸摸。')}return}
   this.phase='PET_REACH';this.humans.pose(role,pair.direction,0)
   if(!await this.scope.wait(token,300))return
@@ -125,7 +174,8 @@ export class PetActionDirector {
   if(!await this.scope.tween(token,{targets:this.lucky.sprite,x:bed.x,y:bed.y+14,duration:400}))return
   this.phase='TURN_AROUND'
   for(const dir of ['left','down']as const){luckyMotion(this.lucky.sprite,dir,'idle');if(!await this.scope.wait(token,220))return}
-  this.phase='LIE_DOWN';this.pose(8);if(!await this.scope.wait(token,450))return
+  this.phase='LIE_DOWN';luckyPose(this.lucky.sprite,'lie');if(!await this.scope.wait(token,310))return
+  this.pose(8);if(!await this.scope.wait(token,280))return
   this.phase='CURL_UP';this.pose(9);if(!await this.scope.wait(token,450))return
   this.sleeping=true;this.phase='KENNEL_SLEEP';this.lucky.machine.state='SLEEPING';this.notice('Lucky 蜷在小窝里睡着了。')
  }
@@ -145,7 +195,7 @@ export class PetActionDirector {
   const dog=this.lucky.sprite
   if(!fetchOnly||this.ball.phase!=='GROUND'){
    this.phase='THROW';let target:Point|undefined
-   for(const [x,y]of [[128,0],[-128,0],[0,128],[0,-128],[80,0],[-80,0]]){const p={x:this.actors.mashuo.x+x,y:this.actors.mashuo.y+y};if(petCanStand(this.lucky.map,p,Object.values(this.actors))&&findPath(this.lucky.map,dog,p)){target=p;break}}
+   for(const [x,y]of [[128,0],[-128,0],[0,128],[0,-128],[80,0],[-80,0]]){const p={x:this.actors.mashuo.x+x,y:this.actors.mashuo.y+y};if(petCanStand(this.lucky.map,p,Object.values(this.actors))&&petPath(this.lucky.map,dog,p,Object.values(this.actors))){target=p;break}}
    if(!target){this.lucky.groundIdle();this.phase='IDLE';this.notice('附近空间太小，带 Lucky 去空地玩球吧。');return}
    if(this.ball.phase==='GROUND'){
     this.lock('mashuo',true);this.humans.pose('mashuo','down',0)
@@ -162,8 +212,12 @@ export class PetActionDirector {
   this.mouthFollow=true;this.phase='CARRY_BALL'
   const target=petNear(this.lucky.map,dog,this.actors.mashuo,Object.values(this.actors))
   if(!target||!await this.lucky.navigateTo(target,true)||!this.scope.valid(token)){if(this.scope.valid(token)){this.mouthFollow=false;await this.ball.place(this.scope,token,this.nearGround(dog)??this.ball.position);this.lucky.groundIdle();this.phase='IDLE'}return}
-  this.mouthFollow=false;this.phase='PLACE_BALL';this.pose(4+directions.indexOf(this.lucky.direction));if(!await this.scope.wait(token,220))return
-  const point=this.nearGround({x:dog.x+8,y:dog.y+6})??{x:dog.x,y:dog.y}
+  this.mouthFollow=false;this.phase='PLACE_BALL'
+  const facing=this.lucky.direction
+  this.pose(4+directions.indexOf(facing))
+  if(!await this.ball.lowerMouth(this.scope,token,dog,facing))return
+  const edge=mouthAnchor(facing,Number(dog.frame.name),true)
+  const point=this.nearGround({x:dog.x+edge.x,y:dog.y+5})??{x:dog.x,y:dog.y}
   if(!await this.ball.place(this.scope,token,point))return
   this.lucky.groundIdle();this.phase='IDLE';this.notice('Lucky 把球放在你身边了。')
   }finally{if(this.scope.valid(token))this.lock('mendu',false)}
@@ -173,11 +227,11 @@ export class PetActionDirector {
  async wakeForTrio(){const ok=await this.clearForHuman();if(ok)this.lucky.setExternal(true);return ok}
  update(time:number){
   this.humans.update(time)
-  if(this.holder&&(this.phase==='HOLD'||this.phase==='LIFT')){
+  if(this.holder&&(this.phase==='HOLD'||this.phase==='LIFT'||this.phase==='LOWER')){
    if(this.phase==='HOLD'){const p=this.humans.cradle(this.holder);this.lucky.sprite.setPosition(p.x,p.y);this.pose(directions.indexOf(this.holdDirection)+(time%4200>4030?52:0),this.holdDirection==='down')}
    this.lucky.sprite.setDepth(this.actors[this.holder].depth+(this.holdDirection==='up'?-.002:.004))
   }else if(this.lucky.controlled)this.lucky.sprite.setDepth(10+this.lucky.sprite.y/1000)
-  if(this.sleeping&&this.phase==='KENNEL_SLEEP')this.pose(9+Math.floor(time/800)%3)
+  if(this.sleeping&&this.phase==='KENNEL_SLEEP')this.pose(time%4200>3850?10:9)
   if(this.mouthFollow)this.ball.attach(this.lucky.sprite,this.lucky.direction)
  }
  resetScene(){this.scope.cancel();this.lucky.stopRoute();this.ball.clear();this.humans.restoreAll();this.unlock();this.holder=undefined;this.sleeping=false;this.mouthFollow=false;this.phase='IDLE';this.lucky.setExternal(false)}
