@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lucky 上床动画验收 · Our Little Home</title>
+<style>
+    :root { color-scheme: light; font-family: system-ui, "PingFang SC", sans-serif; color: #302d25; background: #f6eedf; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { max-width: 1100px; margin: auto; padding: clamp(20px,5vw,60px); }
+    header { padding-bottom: 28px; border-bottom: 1px solid #bcaa8d; }
+    h1, h2 { font-family: Georgia, "Songti SC", serif; font-weight: 500; }
+    h1 { font-size: clamp(32px,5vw,54px); margin: 12px 0; }
+    h2 { font-size: clamp(24px,3vw,34px); margin: 40px 0 14px; }
+    p { line-height: 1.65; }
+    a { color: #3a5844; text-underline-offset: 3px; }
+    .brand { letter-spacing: .16em; font-size: 12px; font-weight: 700; }
+    .play { display: inline-flex; align-items: center; min-height: 48px; padding: 8px 18px; background: #365344; color: #f9f3e7; text-decoration: none; }
+    .speed { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0 16px; }
+    button { min-height: 48px; padding: 8px 15px; background: #fff8e8; border: 1px solid #837357; border-radius: 2px; font: inherit; color: #302d25; }
+    button[aria-pressed=true] { background: #365344; color: #fff8e8; }
+    video, img { display: block; width: 100%; }
+    video { aspect-ratio: 16 / 10; background: #21372c; border-radius: 3px; }
+    .stills { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+    figure { margin: 0; background: #fff8e8; border: 1px solid #d0bea0; }
+    figure img { image-rendering: pixelated; aspect-ratio: 4 / 3; object-fit: contain; background: #21372c; }
+    figcaption { padding: 8px 12px; }
+    footer { margin-top: 32px; border-top: 1px solid #bcaa8d; }
+    @media (max-width: 680px) { .stills { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+  </style>
+</head>
+<body><main>
+  <header>
+    <div class="brand">OUR LITTLE HOME</div>
+    <h1>Lucky 上床动画验收</h1>
+    <p>从跑向床边、蓄力和前爪先着床，到钻进被窝、睡醒后跳回地面。以下是修复后的真实游戏录屏。</p>
+    <a class="play" href="../../?preview=home">进入私有试玩</a>
+  </header>
+  <section aria-labelledby="lucky-title">
+    <h2 id="lucky-title">完整入睡与起床</h2>
+    <div class="speed" aria-label="播放速度">
+      <button type="button" data-rate="1" aria-pressed="true">1 倍速</button>
+      <button type="button" data-rate="0.5" aria-pressed="false">0.5 倍速</button>
+    </div>
+    <video controls playsinline preload="metadata" poster="walk.webp" src="lucky-bed.mp4" aria-label="Lucky 上床与起床的实机回放"></video>
+  </section>
+  <section aria-labelledby="stills-title">
+    <h2 id="stills-title">床铺局部对照</h2>
+    <div class="stills">
+      <figure><img src="before.webp" alt="旧版绿色暗块随床铺中央褶皱移动"><figcaption>修复前 · 褶皱暗块</figcaption></figure>
+      <figure><img src="walk.webp" alt="Lucky 以完整精灵在床面行走"><figcaption>修复后 · 床面行走</figcaption></figure>
+      <figure><img src="after.webp" alt="新版保留被面原有格纹和轻微圆弧阴影"><figcaption>修复后 · 被中褶皱</figcaption></figure>
+    </div>
+  </section>
+  <footer><p>在游戏里选「与门都互动」→「我们三个一起睡觉」。两人会先躺下，然后 Lucky 上床。选「三个一起起床」可看 Lucky 钻出来并跳下床。</p></footer>
+</main>
+<script>
+  const video = document.querySelector('video');
+  const buttons = [...document.querySelectorAll('[data-rate]')];
+  buttons.forEach(button => button.addEventListener('click', () => {
+    const rate = Number(button.dataset.rate);
+    video.defaultPlaybackRate = rate;
+    video.playbackRate = rate;
+    buttons.forEach(choice => choice.setAttribute('aria-pressed', String(choice === button)));
+  }));
+</script>
+</body>
+</html>

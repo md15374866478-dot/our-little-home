@@ -123,6 +123,7 @@ export class TrioSleepController {
     if(!await this.scope.tween(token,{
      targets:dog,y,duration:280,onUpdate:tween=>{ this.tuck=from+(tuck-from)*tween.progress },
     }))return
+    this.tuck=tuck
    }
    this.above.setVisible(false)
    this.frame(26);if(!await this.scope.tween(token,{targets:this.lucky.sprite,y:88,duration:750}))return
@@ -212,6 +213,7 @@ export class TrioSleepController {
     targets:this.lucky.sprite,y:128,duration:760,
     onUpdate:tween=>{ this.tuck=from*(1-tween.progress) },
    }))return false
+   this.tuck=0
    this.frame(28);if(!await this.scope.tween(token,{targets:this.lucky.sprite,y:134,duration:260}))return false
    this.lucky.sprite.clearMask()
    this.above.setVisible(false);this.burrowed=false
