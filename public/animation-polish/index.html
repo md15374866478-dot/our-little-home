@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>动画精修验收 · Our Little Home</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, "PingFang SC", sans-serif; color: #302d25; background: #f6eedf; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { max-width: 1100px; margin: auto; padding: clamp(20px,5vw,60px); }
+    header { padding-bottom: 28px; border-bottom: 1px solid #bcaa8d; }
+    h1, h2 { font-family: Georgia, "Songti SC", serif; font-weight: 500; }
+    h1 { font-size: clamp(32px,5vw,54px); margin: 12px 0; }
+    h2 { font-size: clamp(24px,3vw,34px); margin: 40px 0 14px; }
+    p { line-height: 1.65; }
+    a { color: #3a5844; text-underline-offset: 3px; }
+    .brand { letter-spacing: .16em; font-size: 12px; font-weight: 700; }
+    .play { display: inline-flex; align-items: center; min-height: 48px; padding: 8px 18px; background: #365344; color: #f9f3e7; text-decoration: none; }
+    .speed { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0 16px; }
+    button { min-height: 48px; padding: 8px 15px; background: #fff8e8; border: 1px solid #837357; border-radius: 2px; font: inherit; color: #302d25; }
+    button[aria-pressed=true] { background: #365344; color: #fff8e8; }
+    video, img { display: block; width: 100%; }
+    video { aspect-ratio: 16 / 10; background: #21372c; border-radius: 3px; }
+    .stills { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+    figure { margin: 0; background: #fff8e8; border: 1px solid #d0bea0; }
+    figure img { image-rendering: pixelated; aspect-ratio: 4 / 3; object-fit: contain; background: #21372c; }
+    figcaption { padding: 8px 12px; }
+    footer { margin-top: 32px; border-top: 1px solid #bcaa8d; }
+    @media (max-width: 680px) { .stills { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="brand">OUR LITTLE HOME</div>
+      <h1>动画精修验收</h1>
+      <p>实机回放支持 1 倍速和 0.5 倍速。慢放可检查手与被角的接触、Lucky 起落以及被子的遮挡。</p>
+      <a class="play" href="../?preview=home">进入私有试玩</a>
+    </header>
+    <section aria-labelledby="bed-title">
+      <h2 id="bed-title">双人床与三人睡眠</h2>
+      <div class="speed" aria-label="播放速度">
+        <button data-rate="1" aria-pressed="true">1 倍速</button>
+        <button data-rate="0.5" aria-pressed="false">0.5 倍速</button>
+      </div>
+      <video controls playsinline preload="metadata" poster="three-asleep.webp" src="bed.mp4" aria-label="床铺真实游戏录像"></video>
+      <p>依次展示两侧单独掀被、其中一人先起床，以及 Lucky 加入后的入睡和起床。</p>
+    </section>
+    <section aria-labelledby="lucky-title">
+      <h2 id="lucky-title">Lucky 的互动</h2>
+      <div class="speed" aria-label="播放速度">
+        <button data-rate="1" aria-pressed="true">1 倍速</button>
+        <button data-rate="0.5" aria-pressed="false">0.5 倍速</button>
+      </div>
+      <video controls playsinline preload="metadata" poster="carry.webp" src="lucky.mp4" aria-label="Lucky 真实互动录像"></video>
+      <p>查看抚摸、抱持行走与放下、叼球和回窝睡觉。</p>
+    </section>
+    <section aria-labelledby="closeup-title">
+      <h2 id="closeup-title">床边局部</h2>
+      <div class="speed" aria-label="播放速度">
+        <button data-rate="1" aria-pressed="true">1 倍速</button>
+        <button data-rate="0.5" aria-pressed="false">0.5 倍速</button>
+      </div>
+      <video controls playsinline preload="none" poster="side-fold.webp" src="bed-closeup.mp4" aria-label="床铺局部真实游戏回放"></video>
+    </section>
+    <section aria-labelledby="stills-title">
+      <h2 id="stills-title">关键画面</h2>
+      <div class="stills">
+        <figure><a href="side-fold.webp"><img loading="lazy" src="side-fold.webp" alt="床尾固定，右侧保持平整，左侧露出翻折的背面"></a><figcaption>单侧掀被</figcaption></figure>
+        <figure><a href="independent-wake.webp"><img loading="lazy" src="independent-wake.webp" alt="马硕站在床外，门都仍在被下睡着"></a><figcaption>独立起床</figcaption></figure>
+        <figure><a href="lucky-jump.webp"><img loading="lazy" src="lucky-jump.webp" alt="Lucky 越过床沿"></a><figcaption>起跳</figcaption></figure>
+        <figure><a href="lucky-burrow.webp"><img loading="lazy" src="lucky-burrow.webp" alt="Lucky 的身体进入被下，中央被面隆起"></a><figcaption>钻被窝</figcaption></figure>
+        <figure><a href="two-asleep.webp"><img loading="lazy" src="two-asleep.webp" alt="马硕和门都各自闭眼躺在两侧"></a><figcaption>双人睡眠</figcaption></figure>
+        <figure><a href="three-asleep.webp"><img loading="lazy" src="three-asleep.webp" alt="Lucky 露出头部睡在马硕和门都中间"></a><figcaption>三人睡眠</figcaption></figure>
+      </div>
+    </section>
+    <footer><p>请在 iPad Safari 横屏试玩，检查触控、动作取消和贴近家具时的遮挡。录像来自 Chromium 中运行的 Phaser 场景。</p></footer>
+  </main>
+  <script>
+    for (const section of document.querySelectorAll('section')) {
+      const video = section.querySelector('video');
+      if (!video) continue;
+      const buttons = Array.from(section.querySelectorAll('button[data-rate]'));
+      for (const button of buttons) {
+        button.addEventListener('click', () => {
+          const rate = Number(button.dataset.rate);
+          video.defaultPlaybackRate = rate;
+          video.playbackRate = rate;
+          for (const choice of buttons) choice.setAttribute('aria-pressed', String(choice === button));
+        });
+      }
+    }
+  </script>
+</body>
+</html>
